@@ -1,0 +1,28 @@
+---
+import config from 'virtual:starlight/user-config';
+import Search from 'virtual:starlight/components/Search';
+import SharedHeader from '../shared-ui/components/SiteHeader.astro';
+
+const shouldRenderSearch =
+	config.pagefind ||
+	config.components.Search !== '@astrojs/starlight/components/Search.astro';
+---
+
+<SharedHeader>
+	{shouldRenderSearch && (
+		<div slot="extra" class="jr-docs-search">
+			<Search />
+		</div>
+	)}
+</SharedHeader>
+
+<style>
+	.jr-docs-search {
+		display: flex;
+		align-items: center;
+	}
+	.jr-docs-search :global(button[data-open-modal]) {
+		padding: 0.4rem 0.75rem;
+		font-size: 0.875rem;
+	}
+</style>

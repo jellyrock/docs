@@ -1,0 +1,14 @@
+{
+	"name": "jellyrock-docs",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"workspaces": ["user-docs", "dev-docs"],
+	"scripts": {
+		"dev:user": "npm run dev --workspace user-docs",
+		"dev:dev": "npm run dev --workspace dev-docs",
+		"build:user": "npm run build --workspace user-docs",
+		"build:dev": "npm run build --workspace dev-docs",
+		"build": "npm run build:user && npm run build:dev"
+	}
+}

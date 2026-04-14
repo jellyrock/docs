@@ -1,0 +1,11 @@
+---
+import Default from '@astrojs/starlight/components/PageFrame.astro';
+import SharedFooter from '../shared-ui/components/SiteFooter.astro';
+---
+
+<Default>
+	<slot name="header" slot="header" />
+	<slot name="sidebar" slot="sidebar" />
+	<slot />
+</Default>
+<SharedFooter />

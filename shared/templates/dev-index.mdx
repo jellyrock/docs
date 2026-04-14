@@ -1,0 +1,41 @@
+---
+title: JellyRock Dev Guide
+description: Developer documentation for contributing to JellyRock.
+template: splash
+hero:
+  tagline: Everything you need to start contributing to JellyRock.
+  actions:
+    - text: View on GitHub
+      link: https://github.com/jellyrock/jellyrock
+      icon: external
+      variant: primary
+    - text: API Reference
+      link: https://api.jellyrock.app
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+	<Card title="Development Guide" icon="open-book">
+		Start here. Set up your environment, understand the codebase, and make your first contribution.
+
+		[→ DEVGUIDE](/devguide/)
+	</Card>
+	<Card title="Code Style" icon="pencil">
+		Coding conventions, formatting, and linting rules used throughout the project.
+
+		[→ Code Style](/code-style/)
+	</Card>
+	<Card title="Testing" icon="approve-check">
+		Unit tests, test-driven development, and running tests on real devices.
+
+		[→ Unit Tests](/unit-tests/) · [→ TDD Workflow](/unit-tests-tdd/)
+	</Card>
+	<Card title="Translations" icon="translate">
+		Contribute translations via our self-hosted Weblate instance.
+
+		[→ Translations Guide](/translations/)
+	</Card>
+</CardGrid>

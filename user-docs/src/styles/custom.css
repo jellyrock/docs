@@ -1,0 +1,73 @@
+/* Force dark-only — JellyRock is dark themed.
+   Color values come from theme.css (auto-generated from jellyrock settings.json). */
+:root {
+	color-scheme: dark;
+}
+
+/* Hide the theme picker entirely since we force dark */
+starlight-theme-select {
+	display: none !important;
+}
+
+/* Starlight wraps the header content in a fixed element with built-in padding
+   meant to space its own logo+search+icons. Since we replace the entire header
+   content with our shared SiteHeader (which has its own padding), the outer
+   wrapper's padding causes a visual offset. Zero it out. */
+header.header {
+	padding: 0 !important;
+}
+
+/* On mobile, reserve space at the right for Starlight's hamburger menu button
+   so it doesn't overlap our search icon. */
+@media (max-width: 50rem) {
+	.jr-site-header-inner {
+		padding-right: calc(1.5rem + var(--sl-menu-button-size, 3rem)) !important;
+	}
+}
+
+/* Convert Starlight's fixed sidebars to sticky on desktop so they scroll away
+   when the user reaches the full-width footer. Mobile keeps the fixed overlay. */
+
+@media (min-width: 50rem) {
+	/* Row layout on desktop: sidebar + main-frame are siblings */
+	.page {
+		flex-direction: row !important;
+	}
+
+	/* Sidebar is a flex sibling positioned below the fixed header.
+	   margin-top shifts the ENTIRE sidebar element down so its background
+	   and content both start cleanly at the header's bottom edge. */
+	.sidebar {
+		width: var(--sl-sidebar-width);
+		flex-shrink: 0;
+		margin-top: var(--sl-nav-height);
+	}
+
+	/* Sticky sidebar-pane: stays visible while scrolling through content, and
+	   scrolls up out of view naturally when the page reaches the footer. */
+	.sidebar-pane {
+		position: sticky !important;
+		top: var(--sl-nav-height) !important;
+		inset-block-end: auto !important;
+		inset-inline-start: auto !important;
+		height: calc(100vh - var(--sl-nav-height)) !important;
+		width: 100% !important;
+	}
+
+	/* Main frame no longer needs space for the sidebar since it's a flex sibling */
+	.main-frame {
+		padding-inline-start: 0 !important;
+		flex: 1;
+		min-width: 0;
+	}
+}
+
+/* Right TOC sidebar: use sticky with proper height */
+@media (min-width: 72rem) {
+	.right-sidebar {
+		position: sticky !important;
+		top: var(--sl-nav-height) !important;
+		height: calc(100vh - var(--sl-nav-height)) !important;
+		padding-top: 0 !important;
+	}
+}
