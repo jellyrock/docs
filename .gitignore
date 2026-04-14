@@ -25,10 +25,10 @@ pnpm-debug.log*
 user-docs/src/content/docs/
 user-docs/src/assets/logo-jr.png
 user-docs/public/favicon.png
-user-docs/src/shared-ui/
+user-docs/src/shared-ui
 user-docs/src/styles/theme.css
 dev-docs/src/content/docs/
 dev-docs/src/assets/logo-jr.png
 dev-docs/public/favicon.png
-dev-docs/src/shared-ui/
+dev-docs/src/shared-ui
 dev-docs/src/styles/theme.css
