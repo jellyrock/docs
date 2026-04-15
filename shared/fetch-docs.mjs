@@ -48,13 +48,17 @@ export async function fetchDocs(docType) {
 			fs.cpSync(srcScreenshots, destScreenshots, { recursive: true });
 			console.log('Copied screenshots → src/content/docs/screenshots');
 		}
+	}
 
-		// Copy splash homepage template (overrides anything from repo)
-		const splashTemplate = path.join(__dirname, 'templates', `${docType}-index.mdx`);
-		if (fs.existsSync(splashTemplate)) {
-			fs.copyFileSync(splashTemplate, path.join(contentDir, 'index.mdx'));
-			console.log(`Copied splash template → src/content/docs/index.mdx`);
-		}
+	// Always (re)write the splash index page from our template — it's our file,
+	// cheap to produce, and avoids stale state when we edit the template.
+	// Remove any old index.md too so there's only one index route.
+	const splashTemplate = path.join(__dirname, 'templates', `${docType}-index.mdx`);
+	if (fs.existsSync(splashTemplate)) {
+		fs.mkdirSync(contentDir, { recursive: true });
+		const legacyMdIndex = path.join(contentDir, 'index.md');
+		if (fs.existsSync(legacyMdIndex)) fs.rmSync(legacyMdIndex);
+		fs.copyFileSync(splashTemplate, path.join(contentDir, 'index.mdx'));
 	}
 
 	// Copy square JR logo as favicon
@@ -82,9 +86,17 @@ export async function fetchDocs(docType) {
 	}
 }
 
-/** Ensure the jellyrock repo clone exists with required sparse-checkout paths. */
+/** Ensure the jellyrock repo clone exists with required sparse-checkout paths.
+ * We include both docs/user and docs/dev so the clone is shared between the
+ * user-docs and dev-docs builds without needing a reclone. */
 function ensureClone() {
-	const requiredPaths = ['docs', 'resources/branding', 'settings'];
+	const requiredPaths = [
+		'docs/user',
+		'docs/dev',
+		'docs/screenshots',
+		'resources/branding',
+		'settings',
+	];
 	if (!fs.existsSync(CLONE_DIR)) {
 		execSync(
 			`git clone --depth 1 --filter=blob:none --sparse ${REPO_URL} ${CLONE_DIR}`,
@@ -96,14 +108,16 @@ function ensureClone() {
 		);
 		return;
 	}
-	// Clone exists. Verify sparse-checkout includes required paths;
-	// if not, update it so newer code that needs more paths still works.
+	// Clone exists. Verify sparse-checkout matches required paths exactly;
+	// if not, rewrite it so newer code that needs more paths still works.
 	try {
-		const current = execSync(`git -C ${CLONE_DIR} sparse-checkout list`, { encoding: 'utf8' })
-			.split('\n')
-			.map((l) => l.trim())
-			.filter(Boolean);
-		const missing = requiredPaths.filter((p) => !current.some((c) => c === p || c.startsWith(p + '/')));
+		const current = new Set(
+			execSync(`git -C ${CLONE_DIR} sparse-checkout list`, { encoding: 'utf8' })
+				.split('\n')
+				.map((l) => l.trim())
+				.filter(Boolean)
+		);
+		const missing = requiredPaths.filter((p) => !current.has(p));
 		if (missing.length > 0) {
 			execSync(
 				`git -C ${CLONE_DIR} sparse-checkout set ${requiredPaths.join(' ')}`,
