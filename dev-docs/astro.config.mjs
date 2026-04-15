@@ -17,6 +17,16 @@ export default defineConfig({
 			title: 'JellyRock Dev Guide',
 			description: 'Developer documentation for JellyRock, a Jellyfin client for Roku.',
 			favicon: '/favicon.png',
+			head: [
+				{
+					tag: 'script',
+					attrs: {
+						defer: true,
+						src: 'https://analytics.jellyrock.app/script.js',
+						'data-website-id': 'de160b80-2b3e-488e-b9df-d9a92ca42e1c',
+					},
+				},
+			],
 			customCss: ['./src/shared-ui/tokens.css', './src/styles/theme.css', './src/styles/custom.css'],
 			components: {
 				Header: './src/components/Header.astro',
