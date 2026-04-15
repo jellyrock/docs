@@ -80,17 +80,42 @@ docs/
 ## Local development
 
 ```bash
-# Optional: clone shared-ui as a sibling so dev uses a live symlink.
-git clone https://github.com/jellyrock/shared-ui.git ../shared-ui
-
 npm ci
 npm run dev:user     # http://localhost:4321  →  docs.jellyrock.app
 npm run dev:dev      # http://localhost:4322  →  dev.jellyrock.app
 npm run build        # builds both sites
 ```
 
-`fetch-docs.mjs` caches its `.jellyrock-repo/` sparse-checkout at the repo root;
-delete it to force a fresh pull.
+On the first build:
+
+- [`shared/fetch-shared-ui.mjs`](shared/fetch-shared-ui.mjs) shallow-clones
+  [`jellyrock/shared-ui`](https://github.com/jellyrock/shared-ui) into each
+  site's `src/shared-ui/`.
+- [`shared/fetch-docs.mjs`](shared/fetch-docs.mjs) sparse-clones
+  [`jellyrock/jellyrock`](https://github.com/jellyrock/jellyrock) into
+  `.jellyrock-repo/` at the repo root, then copies markdown into each site's
+  content collection. Delete `.jellyrock-repo/` to force a fresh pull.
+
+This is the same path CI uses — no setup required.
+
+### Iterating on shared-ui locally (opt-in)
+
+If you're actively editing `shared-ui` and want edits to hot-reload in the docs
+sites without a commit-push-rebuild cycle, clone it as a sibling of this repo:
+
+```bash
+git clone https://github.com/jellyrock/shared-ui.git ../shared-ui
+```
+
+When `../shared-ui/` exists, `fetch-shared-ui.mjs` symlinks each site's
+`src/shared-ui/` to it instead of cloning. Vite picks up every save instantly.
+Remove the sibling (or `rm -rf user-docs/src/shared-ui dev-docs/src/shared-ui`)
+to go back to the clone-from-GitHub default.
+
+> [!CAUTION]
+> The symlink points at your local working tree — you can ship a build
+> referencing shared-ui commits that aren't pushed yet. Always push
+> `shared-ui` before pushing the consumer sites that depend on the change.
 
 ## Updating content
 
