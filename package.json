@@ -2,6 +2,8 @@
 	"name": "jellyrock-docs",
 	"version": "0.0.1",
 	"private": true,
+	"license": "MIT",
+	"author": "Charles Ewert",
 	"type": "module",
 	"workspaces": ["user-docs", "dev-docs"],
 	"scripts": {
