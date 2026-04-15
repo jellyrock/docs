@@ -90,22 +90,10 @@ export async function fetchDocs(docType) {
  * We include both docs/user and docs/dev so the clone is shared between the
  * user-docs and dev-docs builds without needing a reclone. */
 function ensureClone() {
-	const requiredPaths = [
-		'docs/user',
-		'docs/dev',
-		'docs/screenshots',
-		'resources/branding',
-		'settings',
-	];
+	const requiredPaths = ['docs/user', 'docs/dev', 'docs/screenshots', 'resources/branding', 'settings'];
 	if (!fs.existsSync(CLONE_DIR)) {
-		execSync(
-			`git clone --depth 1 --filter=blob:none --sparse ${REPO_URL} ${CLONE_DIR}`,
-			{ stdio: 'inherit' }
-		);
-		execSync(
-			`git -C ${CLONE_DIR} sparse-checkout set ${requiredPaths.join(' ')}`,
-			{ stdio: 'inherit' }
-		);
+		execSync(`git clone --depth 1 --filter=blob:none --sparse ${REPO_URL} ${CLONE_DIR}`, { stdio: 'inherit' });
+		execSync(`git -C ${CLONE_DIR} sparse-checkout set ${requiredPaths.join(' ')}`, { stdio: 'inherit' });
 		return;
 	}
 	// Clone exists. Verify sparse-checkout matches required paths exactly;
@@ -119,10 +107,7 @@ function ensureClone() {
 		);
 		const missing = requiredPaths.filter((p) => !current.has(p));
 		if (missing.length > 0) {
-			execSync(
-				`git -C ${CLONE_DIR} sparse-checkout set ${requiredPaths.join(' ')}`,
-				{ stdio: 'inherit' }
-			);
+			execSync(`git -C ${CLONE_DIR} sparse-checkout set ${requiredPaths.join(' ')}`, { stdio: 'inherit' });
 		}
 	} catch {
 		// If anything fails, ignore — the fetch will surface real errors later.

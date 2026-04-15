@@ -1,32 +1,32 @@
 # JellyRock Docs
 
-[![User docs](https://img.shields.io/badge/user-docs.jellyrock.app-2563eb "User documentation")](https://docs.jellyrock.app)
-[![Dev docs](https://img.shields.io/badge/dev-dev.jellyrock.app-7c3aed "Developer documentation")](https://dev.jellyrock.app)
-[![License](https://img.shields.io/github/license/jellyrock/docs "License")](./LICENSE)
-[![build](https://img.shields.io/github/actions/workflow/status/jellyrock/docs/deploy.yml?logo=github&branch=main "build")](https://github.com/jellyrock/docs/actions/workflows/deploy.yml?query=branch%3Amain)
+[![User docs](https://img.shields.io/badge/user-docs.jellyrock.app-2563eb 'User documentation')](https://docs.jellyrock.app)
+[![Dev docs](https://img.shields.io/badge/dev-dev.jellyrock.app-7c3aed 'Developer documentation')](https://dev.jellyrock.app)
+[![License](https://img.shields.io/github/license/jellyrock/docs 'License')](./LICENSE)
+[![build](https://img.shields.io/github/actions/workflow/status/jellyrock/docs/deploy.yml?logo=github&branch=main 'build')](https://github.com/jellyrock/docs/actions/workflows/deploy.yml?query=branch%3Amain)
 
 npm workspaces monorepo that builds both JellyRock documentation sites from
 markdown that lives in [`jellyrock/jellyrock`](https://github.com/jellyrock/jellyrock).
 
-| Site | URL | Source markdown |
-| ---- | --- | --------------- |
+| Site      | URL                                              | Source markdown                                                                                    |
+| --------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
 | User docs | [docs.jellyrock.app](https://docs.jellyrock.app) | `jellyrock/jellyrock` → [`docs/user/`](https://github.com/jellyrock/jellyrock/tree/main/docs/user) |
-| Dev docs | [dev.jellyrock.app](https://dev.jellyrock.app) | `jellyrock/jellyrock` → [`docs/dev/`](https://github.com/jellyrock/jellyrock/tree/main/docs/dev) |
+| Dev docs  | [dev.jellyrock.app](https://dev.jellyrock.app)   | `jellyrock/jellyrock` → [`docs/dev/`](https://github.com/jellyrock/jellyrock/tree/main/docs/dev)   |
 
 Both sites share an identical build pipeline, shared UI, and theme — they differ
 only in content source, home page splash, and page order.
 
 ## Tech stack
 
-| Piece | Choice | Why |
-| ----- | ------ | --- |
-| Framework | [Astro 5](https://astro.build/) + [Starlight](https://starlight.astro.build/) | First-class docs features: sidebar, search, dark mode, TOC. |
-| Markdown extensions | [`remark-github-alerts`](https://github.com/chrisweb/remark-github-alerts) | Lets `> [!NOTE]` / `> [!TIP]` / `> [!CAUTION]` render on both GitHub and Starlight. |
-| Shared UI | [`jellyrock/shared-ui`](https://github.com/jellyrock/shared-ui) | One nav/footer/tokens source for all four JellyRock sites. |
-| Content pipeline | Custom [`shared/fetch-docs.mjs`](shared/fetch-docs.mjs) | Shallow-clones the app repo at build time so devs can edit markdown next to the code. |
-| Theme | Auto-generated from [`jellyrock/settings.json`](https://github.com/jellyrock/jellyrock/blob/main/settings/settings.json) | CSS variables mirror the app's in-product themes. |
-| Analytics | [Umami](https://analytics.jellyrock.app) (self-hosted) | Privacy-respecting; one website ID per site (see each site's `astro.config.mjs`). |
-| Hosting | Caddy `file_server` on the JellyRock VPS | Same pipeline as the homepage and API reference. |
+| Piece               | Choice                                                                                                                   | Why                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Framework           | [Astro 5](https://astro.build/) + [Starlight](https://starlight.astro.build/)                                            | First-class docs features: sidebar, search, dark mode, TOC.                           |
+| Markdown extensions | [`remark-github-alerts`](https://github.com/chrisweb/remark-github-alerts)                                               | Lets `> [!NOTE]` / `> [!TIP]` / `> [!CAUTION]` render on both GitHub and Starlight.   |
+| Shared UI           | [`jellyrock/shared-ui`](https://github.com/jellyrock/shared-ui)                                                          | One nav/footer/tokens source for all four JellyRock sites.                            |
+| Content pipeline    | Custom [`shared/fetch-docs.mjs`](shared/fetch-docs.mjs)                                                                  | Shallow-clones the app repo at build time so devs can edit markdown next to the code. |
+| Theme               | Auto-generated from [`jellyrock/settings.json`](https://github.com/jellyrock/jellyrock/blob/main/settings/settings.json) | CSS variables mirror the app's in-product themes.                                     |
+| Analytics           | [Umami](https://analytics.jellyrock.app) (self-hosted)                                                                   | Privacy-respecting; one website ID per site (see each site's `astro.config.mjs`).     |
+| Hosting             | Caddy `file_server` on the JellyRock VPS                                                                                 | Same pipeline as the homepage and API reference.                                      |
 
 ## How a build works
 
@@ -185,11 +185,11 @@ Starlight renders plain HTML, so three paths work today:
    `jellyrock/jellyrock:docs/screenshots/` (already synced by `fetch-docs.mjs`)
    and embed with:
 
-    ```md
-    <video src="/screenshots/my-demo.webm" controls muted playsinline width="720">
-      Your browser does not support the video tag.
-    </video>
-    ```
+   ```md
+   <video src="/screenshots/my-demo.webm" controls muted playsinline width="720">
+     Your browser does not support the video tag.
+   </video>
+   ```
 
    Keep files lean — no image pipeline optimizes video. Prefer WebM at 720p,
    <2 MB.
@@ -208,13 +208,13 @@ Starlight renders plain HTML, so three paths work today:
 
 ### Changing branding / theme
 
-| Want to change | Where |
-| -------------- | ----- |
-| Colors / typography tokens | [`jellyrock/shared-ui:tokens.css`](https://github.com/jellyrock/shared-ui/blob/main/tokens.css) |
-| Starlight-specific CSS overrides | `user-docs/src/styles/custom.css` and `dev-docs/src/styles/custom.css` |
-| In-app color themes (cascades here) | [`jellyrock/jellyrock:settings/settings.json`](https://github.com/jellyrock/jellyrock/blob/main/settings/settings.json) — `fetch-docs.mjs` regenerates `theme.css` from this |
-| Header links / footer sections | [`jellyrock/shared-ui:nav.ts`](https://github.com/jellyrock/shared-ui/blob/main/nav.ts) |
-| Starlight site title, accent, social | [`user-docs/astro.config.mjs`](user-docs/astro.config.mjs), [`dev-docs/astro.config.mjs`](dev-docs/astro.config.mjs) |
+| Want to change                       | Where                                                                                                                                                                        |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Colors / typography tokens           | [`jellyrock/shared-ui:tokens.css`](https://github.com/jellyrock/shared-ui/blob/main/tokens.css)                                                                              |
+| Starlight-specific CSS overrides     | `user-docs/src/styles/custom.css` and `dev-docs/src/styles/custom.css`                                                                                                       |
+| In-app color themes (cascades here)  | [`jellyrock/jellyrock:settings/settings.json`](https://github.com/jellyrock/jellyrock/blob/main/settings/settings.json) — `fetch-docs.mjs` regenerates `theme.css` from this |
+| Header links / footer sections       | [`jellyrock/shared-ui:nav.ts`](https://github.com/jellyrock/shared-ui/blob/main/nav.ts)                                                                                      |
+| Starlight site title, accent, social | [`user-docs/astro.config.mjs`](user-docs/astro.config.mjs), [`dev-docs/astro.config.mjs`](dev-docs/astro.config.mjs)                                                         |
 
 ### Swapping Umami website IDs
 
@@ -231,10 +231,10 @@ Required repo secrets (org-level, shared with sibling deploy repos):
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
-| ------- | ------------ | --- |
-| Dev server serves stale `theme.css` | Vite HMR didn't pick up the regenerated file | Restart `npm run dev:*` |
-| Old content keeps showing in dev | `.jellyrock-repo/` cache is stale | `rm -rf .jellyrock-repo` then rebuild |
-| Deploy fails at rsync step | `VPS_KNOWN_HOSTS` secret missing or stale | Refresh via `ssh-keyscan` on the control host, update the secret |
-| `fetch-shared-ui.mjs` clones instead of symlinking | No sibling `../shared-ui/` present | Expected in CI; for local dev, clone it as a sibling |
-| Alerts render as plain blockquotes | `remark-github-alerts` missing or removed | Check the `markdown.remarkPlugins` array in both `astro.config.mjs` files |
+| Symptom                                            | Likely cause                                 | Fix                                                                       |
+| -------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
+| Dev server serves stale `theme.css`                | Vite HMR didn't pick up the regenerated file | Restart `npm run dev:*`                                                   |
+| Old content keeps showing in dev                   | `.jellyrock-repo/` cache is stale            | `rm -rf .jellyrock-repo` then rebuild                                     |
+| Deploy fails at rsync step                         | `VPS_KNOWN_HOSTS` secret missing or stale    | Refresh via `ssh-keyscan` on the control host, update the secret          |
+| `fetch-shared-ui.mjs` clones instead of symlinking | No sibling `../shared-ui/` present           | Expected in CI; for local dev, clone it as a sibling                      |
+| Alerts render as plain blockquotes                 | `remark-github-alerts` missing or removed    | Check the `markdown.remarkPlugins` array in both `astro.config.mjs` files |
