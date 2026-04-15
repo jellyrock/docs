@@ -1,9 +1,9 @@
 # JellyRock Docs
 
-[![Deploy](https://github.com/jellyrock/docs/actions/workflows/deploy.yml/badge.svg?branch=main&label=Deploy)](https://github.com/jellyrock/docs/actions/workflows/deploy.yml)
-[![User docs](https://img.shields.io/badge/user-docs.jellyrock.app-2563eb)](https://docs.jellyrock.app)
-[![Dev docs](https://img.shields.io/badge/dev-dev.jellyrock.app-7c3aed)](https://dev.jellyrock.app)
-[![License](https://img.shields.io/github/license/jellyrock/docs)](./LICENSE)
+[![User docs](https://img.shields.io/badge/user-docs.jellyrock.app-2563eb "User documentation")](https://docs.jellyrock.app)
+[![Dev docs](https://img.shields.io/badge/dev-dev.jellyrock.app-7c3aed "Developer documentation")](https://dev.jellyrock.app)
+[![License](https://img.shields.io/github/license/jellyrock/docs "License")](./LICENSE)
+[![build](https://img.shields.io/github/actions/workflow/status/jellyrock/docs/deploy.yml?logo=github&branch=main "build")](https://github.com/jellyrock/docs/actions/workflows/deploy.yml?query=branch%3Amain)
 
 npm workspaces monorepo that builds both JellyRock documentation sites from
 markdown that lives in [`jellyrock/jellyrock`](https://github.com/jellyrock/jellyrock).
