@@ -1,4 +1,22 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"extends": ["github>jellyrock/.github//renovate/default"]
+	"extends": ["github>jellyrock/.github//renovate/default"],
+	"customManagers": [
+		{
+			"customType": "regex",
+			"description": "Track the rokucommunity/vscode-brightscript-language release whose TextMate grammar we vendor in dev-docs/src/syntaxes/. When Renovate bumps the ref, the sync-brightscript-grammar workflow re-fetches the JSON so the PR contains both changes atomically.",
+			"fileMatch": ["^dev-docs/src/syntaxes/\\.version-info$"],
+			"matchStrings": [
+				"# renovate:\\s+datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*ref:\\s*(?<currentValue>\\S+)"
+			]
+		}
+	],
+	"packageRules": [
+		{
+			"description": "Label vendored-grammar bumps so they're easy to spot in the queue; do not automerge — humans review the upstream release notes before adopting.",
+			"matchPackageNames": ["rokucommunity/vscode-brightscript-language"],
+			"addLabels": ["vendored-grammar"],
+			"automerge": false
+		}
+	]
 }

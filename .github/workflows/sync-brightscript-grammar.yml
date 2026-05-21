@@ -1,0 +1,70 @@
+name: Sync BrightScript grammar
+
+# Renovate watches dev-docs/src/syntaxes/.version-info (see renovate.json
+# customManagers) and opens a PR bumping the `ref:` line when a new release
+# of rokucommunity/vscode-brightscript-language is published. This workflow
+# fires on that PR, re-fetches the grammar JSON from the new tag, and
+# commits the updated file to the PR branch — so a single review/merge
+# updates both files atomically.
+#
+# Also runnable manually via workflow_dispatch in case the auto-commit
+# misses (e.g. fork PRs, where GITHUB_TOKEN can't push to the head branch).
+
+on:
+  pull_request:
+    paths:
+      - 'dev-docs/src/syntaxes/.version-info'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Upstream tag (e.g. v2.65.0). Defaults to whatever .version-info says.'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    # Skip on PRs from forks — GITHUB_TOKEN doesn't have push perms there.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          # PAT or a github-app token would also work; default GITHUB_TOKEN
+          # is sufficient since we're only pushing to the same repo.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read upstream ref
+        id: ref
+        run: |
+          if [ -n "${{ inputs.ref }}" ]; then
+            echo "value=${{ inputs.ref }}" >> "$GITHUB_OUTPUT"
+          else
+            VALUE=$(awk '/^ref:/ {print $2}' dev-docs/src/syntaxes/.version-info)
+            if [ -z "$VALUE" ]; then
+              echo "::error::Could not read ref: from .version-info"
+              exit 1
+            fi
+            echo "value=$VALUE" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch grammar from upstream
+        run: |
+          curl -fsSL \
+            "https://raw.githubusercontent.com/rokucommunity/vscode-brightscript-language/${{ steps.ref.outputs.value }}/syntaxes/brightscript.tmLanguage.json" \
+            -o dev-docs/src/syntaxes/brightscript.tmLanguage.json
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet dev-docs/src/syntaxes/brightscript.tmLanguage.json; then
+            echo "Grammar already matches ${{ steps.ref.outputs.value }} — nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dev-docs/src/syntaxes/brightscript.tmLanguage.json
+          git commit -m "sync: brightscript grammar to ${{ steps.ref.outputs.value }}"
+          git push
