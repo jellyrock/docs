@@ -7,3 +7,6 @@ node_modules
 .jellyrock-repo
 .shared-ui-repo
 package-lock.json
+
+# Vendored upstream grammars — preserve original formatting
+**/src/syntaxes/

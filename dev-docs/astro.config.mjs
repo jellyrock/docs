@@ -1,4 +1,5 @@
 // @ts-check
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import remarkGithubAlerts from 'remark-github-alerts';
@@ -9,6 +10,13 @@ import { fetchSharedUi } from '../shared/fetch-shared-ui.mjs';
 await fetchSharedUi();
 await fetchDocs('dev');
 
+// BrightScript TextMate grammar vendored from rokucommunity (MIT). Version
+// tracked in src/syntaxes/.version-info; sync-brightscript-grammar workflow
+// re-fetches when Renovate bumps the ref.
+const brightscriptGrammar = JSON.parse(
+	readFileSync(new URL('./src/syntaxes/brightscript.tmLanguage.json', import.meta.url), 'utf8')
+);
+
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://dev.jellyrock.app',
@@ -17,6 +25,15 @@ export default defineConfig({
 			title: 'JellyRock Dev Guide',
 			description: 'Developer documentation for JellyRock, a Jellyfin client for Roku.',
 			favicon: '/favicon.png',
+			expressiveCode: {
+				shiki: {
+					langs: [brightscriptGrammar],
+					langAlias: {
+						brighterscript: 'brightscript',
+						bs: 'brightscript',
+					},
+				},
+			},
 			head: [
 				{
 					tag: 'script',

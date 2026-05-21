@@ -1,0 +1,7 @@
+{
+	"// files.associations": "Stop the markdownlint extension from flagging dotfiles whose first line happens to start with '#'. None of these are markdown.",
+	"files.associations": {
+		".prettierignore": "ignore",
+		".version-info": "yaml"
+	}
+}
