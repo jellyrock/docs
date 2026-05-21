@@ -197,8 +197,17 @@ starlight-toc nav a[aria-current='true'] {
 }
 
 /**
- * Recursively copy markdown files, auto-generating Starlight frontmatter
- * (title) from the first H1 heading when frontmatter is missing.
+ * Recursively copy markdown files, ensuring each one has a Starlight-required
+ * `title:` frontmatter. Three cases:
+ *   1. No frontmatter at all  → generate one from H1 / HTML h1 / filename
+ *   2. Frontmatter without title: (e.g. jellyrock's docs use `topic:` only)
+ *      → inject a title line into the existing block; rest of the
+ *      frontmatter is preserved (topic:, last-reviewed:, etc.)
+ *   3. Frontmatter with title: → pass through unchanged
+ *
+ * The H1 is removed when used as the title source, so Starlight doesn't
+ * render it twice.
+ *
  * Non-markdown files are copied as-is.
  */
 function copyMarkdownWithFrontmatter(srcDir, destDir) {
@@ -219,17 +228,34 @@ function copyMarkdownWithFrontmatter(srcDir, destDir) {
 
 		let content = fs.readFileSync(srcPath, 'utf8');
 
-		// Skip if frontmatter already exists
-		if (content.startsWith('---\n')) {
-			fs.writeFileSync(destPath, content);
-			continue;
+		// Case 1+2 share title-extraction logic; just differ in what we
+		// write at the end.
+		const hasFrontmatter = content.startsWith('---\n');
+		let existingFm = '';
+		let body = content;
+		if (hasFrontmatter) {
+			const fmEnd = content.indexOf('\n---\n', 4);
+			if (fmEnd === -1) {
+				// Malformed (opens with --- but never closes). Pass through and
+				// let astro check report the real issue.
+				fs.writeFileSync(destPath, content);
+				continue;
+			}
+			existingFm = content.slice(4, fmEnd);
+			body = content.slice(fmEnd + 5);
+
+			// Case 3 — already has title:
+			if (/^title:/m.test(existingFm)) {
+				fs.writeFileSync(destPath, content);
+				continue;
+			}
 		}
 
 		// Extract title from markdown H1, HTML <h1>, or filename as fallback
 		let title;
 		let matchedLine;
-		const mdH1 = content.match(/^#\s+(.+?)\s*$/m);
-		const htmlH1 = content.match(/<h1[^>]*>\s*(.+?)\s*<\/h1>/i);
+		const mdH1 = body.match(/^#\s+(.+?)\s*$/m);
+		const htmlH1 = body.match(/<h1[^>]*>\s*(.+?)\s*<\/h1>/i);
 
 		if (mdH1) {
 			title = mdH1[1].trim();
@@ -247,10 +273,13 @@ function copyMarkdownWithFrontmatter(srcDir, destDir) {
 
 		// Remove the matched H1 since Starlight renders title separately
 		if (matchedLine) {
-			content = content.replace(matchedLine, '').replace(/^\s+/, '');
+			body = body.replace(matchedLine, '').replace(/^\s+/, '');
 		}
 
-		const frontmatter = `---\ntitle: ${JSON.stringify(title)}\n---\n\n`;
-		fs.writeFileSync(destPath, frontmatter + content);
+		const titleLine = `title: ${JSON.stringify(title)}`;
+		const newFm = existingFm
+			? `---\n${titleLine}\n${existingFm}\n---\n\n`
+			: `---\n${titleLine}\n---\n\n`;
+		fs.writeFileSync(destPath, newFm + body);
 	}
 }
