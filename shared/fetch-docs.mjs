@@ -277,9 +277,7 @@ function copyMarkdownWithFrontmatter(srcDir, destDir) {
 		}
 
 		const titleLine = `title: ${JSON.stringify(title)}`;
-		const newFm = existingFm
-			? `---\n${titleLine}\n${existingFm}\n---\n\n`
-			: `---\n${titleLine}\n---\n\n`;
+		const newFm = existingFm ? `---\n${titleLine}\n${existingFm}\n---\n\n` : `---\n${titleLine}\n---\n\n`;
 		fs.writeFileSync(destPath, newFm + body);
 	}
 }
