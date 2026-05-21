@@ -1,0 +1,11 @@
+# Tracks the upstream source of brightscript.tmLanguage.json. Renovate watches
+# this file (see renovate.json customManagers) and opens a PR when a newer
+# release of rokucommunity/vscode-brightscript-language is published. The PR
+# trigger fires the sync-brightscript-grammar workflow, which re-fetches the
+# grammar JSON from the new tag and commits the updated file to the PR branch.
+# Result: a single review/merge updates both the version ref AND the grammar.
+#
+# DO NOT EDIT the ref manually unless you also re-fetch the grammar JSON.
+
+# renovate: datasource=github-releases depName=rokucommunity/vscode-brightscript-language
+ref: v2.65.0
