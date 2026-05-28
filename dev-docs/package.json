@@ -10,7 +10,7 @@
 		"astro": "astro"
 	},
 	"dependencies": {
-		"@astrojs/starlight": "^0.38.3",
+		"@astrojs/starlight": "^0.39.0",
 		"astro": "^6.0.1",
 		"remark-github-alerts": "^0.1.1",
 		"sharp": "^0.34.2"
