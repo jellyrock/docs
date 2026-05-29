@@ -4,6 +4,11 @@ import { execSync } from 'node:child_process';
 
 const REPO_URL = 'https://github.com/jellyrock/shared-ui.git';
 
+// Pinned shared-ui release for reproducible CI/prod builds. Renovate bumps this
+// (see renovate.json customManager); patch bumps auto-merge on green CI.
+// renovate: datasource=github-tags depName=jellyrock/shared-ui
+const SHARED_UI_REF = 'v1.0.0';
+
 /**
  * Copy or symlink the JellyRock shared-ui (header, footer, tokens, nav data)
  * into the current project's src/shared-ui/ directory at build time.
@@ -39,7 +44,7 @@ export async function fetchSharedUi() {
 
 	console.log('Fetching shared-ui from GitHub...');
 	if (!fs.existsSync(cloneDir)) {
-		execSync(`git clone --depth 1 ${REPO_URL} ${cloneDir}`, { stdio: 'inherit' });
+		execSync(`git clone --branch ${SHARED_UI_REF} --depth 1 ${REPO_URL} ${cloneDir}`, { stdio: 'inherit' });
 	}
 
 	fs.mkdirSync(destDir, { recursive: true });

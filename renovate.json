@@ -9,6 +9,14 @@
 			"matchStrings": [
 				"# renovate:\\s+datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*ref:\\s*(?<currentValue>\\S+)"
 			]
+		},
+		{
+			"customType": "regex",
+			"description": "Track the pinned shared-ui release that shared/fetch-shared-ui.mjs clones at build time. Patch bumps auto-merge on green CI via the org preset; minor/major land in the Monday review batch.",
+			"fileMatch": ["^shared/fetch-shared-ui\\.mjs$"],
+			"matchStrings": [
+				"datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s*\\n\\s*const SHARED_UI_REF = '(?<currentValue>[^']+)'"
+			]
 		}
 	],
 	"packageRules": [
