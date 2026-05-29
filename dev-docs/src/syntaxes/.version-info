@@ -8,4 +8,4 @@
 # DO NOT EDIT the ref manually unless you also re-fetch the grammar JSON.
 
 # renovate: datasource=github-releases depName=rokucommunity/vscode-brightscript-language
-ref: v2.65.0
+ref: v2.66.3
