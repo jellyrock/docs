@@ -29,3 +29,6 @@ jobs:
 
       - name: Run checks (astro + eslint + prettier)
         run: npm run check
+
+      - name: Build (gate deploy-time regressions on PRs)
+        run: npm run build
