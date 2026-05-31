@@ -22,8 +22,11 @@ export default defineConfig({
 					tag: 'script',
 					attrs: {
 						defer: true,
-						src: 'https://analytics.jellyrock.app/script.js',
+						// First-party Umami tracker via the same-origin /_a proxy
+						// (ADR-0006) so the CSP can stay strict script-src 'self'.
+						src: '/_a/script.js',
 						'data-website-id': 'f86f75e9-4236-40c4-bf32-7ef74f1939d8',
+						'data-host-url': 'https://docs.jellyrock.app/_a',
 					},
 				},
 			],
