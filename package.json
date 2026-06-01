@@ -26,7 +26,7 @@
 	"devDependencies": {
 		"@astrojs/check": "0.9.9",
 		"@eslint/js": "9.39.4",
-		"@typescript-eslint/parser": "8.60.0",
+		"@typescript-eslint/parser": "8.60.1",
 		"astro-eslint-parser": "1.4.0",
 		"eslint": "9.39.4",
 		"eslint-plugin-astro": "1.7.0",
@@ -34,6 +34,6 @@
 		"prettier": "3.8.3",
 		"prettier-plugin-astro": "0.14.1",
 		"typescript": "5.9.3",
-		"typescript-eslint": "8.60.0"
+		"typescript-eslint": "8.60.1"
 	}
 }
