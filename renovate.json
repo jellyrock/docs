@@ -5,15 +5,15 @@
 		{
 			"customType": "regex",
 			"description": "Track the rokucommunity/vscode-brightscript-language release whose TextMate grammar we vendor in dev-docs/src/syntaxes/. When Renovate bumps the ref, the sync-brightscript-grammar workflow re-fetches the JSON so the PR contains both changes atomically.",
-			"fileMatch": ["^dev-docs/src/syntaxes/\\.version-info$"],
+			"managerFilePatterns": ["/^dev-docs/src/syntaxes/\\.version-info$/"],
 			"matchStrings": [
 				"# renovate:\\s+datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*ref:\\s*(?<currentValue>\\S+)"
 			]
 		},
 		{
 			"customType": "regex",
-			"description": "Track the pinned shared-ui release that shared/fetch-shared-ui.mjs clones at build time. Patch bumps auto-merge on green CI via the org preset; minor/major land in the Monday review batch.",
-			"fileMatch": ["^shared/fetch-shared-ui\\.mjs$"],
+			"description": "Track the pinned shared-ui release that shared/fetch-shared-ui.mjs clones at build time. It follows the org preset like any dependency: patch and minor automerge after their soak once CI is green; majors wait for review.",
+			"managerFilePatterns": ["/^shared/fetch-shared-ui\\.mjs$/"],
 			"matchStrings": [
 				"datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s*\\n\\s*const SHARED_UI_REF = '(?<currentValue>[^']+)'"
 			]
