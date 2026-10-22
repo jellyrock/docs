@@ -41,11 +41,16 @@ export async function fetchDocs(docType) {
 		copyMarkdownWithFrontmatter(srcDocs, contentDir);
 		console.log(`Copied ${docType} docs → src/content/docs`);
 
-		// Copy docs screenshots referenced by markdown
+		// Copy docs screenshots referenced by markdown. Skip markdown files: anything .md
+		// under src/content/docs becomes a Starlight page, and upstream's
+		// docs/screenshots/README.md (no title frontmatter) fails the collection schema.
 		const srcScreenshots = path.join(CLONE_DIR, 'docs', 'screenshots');
 		if (fs.existsSync(srcScreenshots)) {
 			const destScreenshots = path.join(contentDir, 'screenshots');
-			fs.cpSync(srcScreenshots, destScreenshots, { recursive: true });
+			fs.cpSync(srcScreenshots, destScreenshots, {
+				recursive: true,
+				filter: (src) => !/\.(md|mdx|markdown)$/i.test(src),
+			});
 			console.log('Copied screenshots → src/content/docs/screenshots');
 		}
 	}

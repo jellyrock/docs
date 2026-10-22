@@ -35,6 +35,7 @@ export default defineConfig({
 				Header: './src/components/Header.astro',
 				Footer: './src/components/Footer.astro',
 				PageFrame: './src/components/PageFrame.astro',
+				Sidebar: './src/components/Sidebar.astro',
 			},
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/jellyrock/jellyrock' },
