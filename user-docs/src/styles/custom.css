@@ -25,6 +25,15 @@ header.header {
 	}
 }
 
+/* Starlight's menu button shows below 50rem, and its menu lists the site links
+   (components/Sidebar.astro), so hide the shared header's own menu button there:
+   one menu button, not two. Between 50rem and 64rem the shared one is the only one. */
+@media (max-width: 50rem) {
+	.jr-site-menu-button {
+		display: none !important;
+	}
+}
+
 /* Convert Starlight's fixed sidebars to sticky on desktop so they scroll away
    when the user reaches the full-width footer. Mobile keeps the fixed overlay. */
 

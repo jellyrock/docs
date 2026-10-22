@@ -1,0 +1,46 @@
+---
+import Default from '@astrojs/starlight/components/Sidebar.astro';
+import { headerLinks, donateLink, resolveHref } from '../shared-ui/nav';
+
+// On small screens Starlight's menu button replaces the shared header's own menu button
+// (hidden in custom.css), so the site links are listed at the top of Starlight's menu instead.
+const origin = Astro.site?.origin ?? Astro.url.origin;
+---
+
+<nav class="jr-docs-site-links" aria-label="JellyRock site">
+	{headerLinks.map((link) => <a href={resolveHref(link.href, origin)}>{link.text}</a>)}
+	<a href={resolveHref(donateLink.href, origin)}>{donateLink.text}</a>
+</nav>
+
+<Default><slot /></Default>
+
+<style>
+	.jr-docs-site-links {
+		display: flex;
+		flex-direction: column;
+		padding-bottom: 0.75rem;
+		margin-bottom: 0.75rem;
+		border-bottom: 1px solid var(--sl-color-gray-6);
+	}
+	/* Desktop: the shared header shows these links already. */
+	@media (min-width: 50rem) {
+		.jr-docs-site-links {
+			display: none;
+		}
+	}
+	.jr-docs-site-links a {
+		display: flex;
+		align-items: center;
+		min-height: 2.75rem;
+		padding-inline: var(--sl-sidebar-item-padding-inline, 0.5rem);
+		border-radius: 0.25rem;
+		color: var(--sl-color-white);
+		font-size: var(--sl-text-base);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.jr-docs-site-links a:hover,
+	.jr-docs-site-links a:focus-visible {
+		background-color: var(--sl-color-gray-6);
+	}
+</style>
