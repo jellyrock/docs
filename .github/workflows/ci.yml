@@ -35,5 +35,6 @@ jobs:
       - name: Run checks (astro + eslint + prettier)
         run: npm run check
 
+      # Fails on a build warning not in scripts/build-warnings-allowed.txt.
       - name: Build (gate deploy-time regressions on PRs)
-        run: npm run build
+        run: npm run build:strict
