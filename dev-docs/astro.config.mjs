@@ -70,9 +70,6 @@ export default defineConfig({
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/jellyrock/jellyrock' },
 				{ icon: 'matrix', label: 'Matrix', href: 'https://matrix.to/#/#jellyrock-app:matrix.org' },
 			],
-			editLink: {
-				baseUrl: 'https://github.com/jellyrock/jellyrock/edit/main/docs/dev/',
-			},
 		}),
 	],
 	markdown: {
