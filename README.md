@@ -80,6 +80,8 @@ docs/
 ## Local development
 
 ```bash
+nvm use              # Node from .nvmrc
+npm install -g "$(node -p 'require("./package.json").packageManager')"  # the npm CI and Renovate use
 npm ci
 npm run dev:user     # http://localhost:4321  →  docs.jellyrock.app
 npm run dev:dev      # http://localhost:4322  →  dev.jellyrock.app
