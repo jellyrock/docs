@@ -1,0 +1,10 @@
+# Build warnings that may appear without failing CI (scripts/build-warnings.sh).
+# Each line is matched as plain text against the warning, from "[WARN]" on.
+# Add one only with a comment saying why it's harmless.
+
+# Starlight reads its optional i18n collection on every build; we have no translations.
+# Defining an empty collection doesn't help: it adds a second warning about the missing folder.
+[WARN] [content] The collection "i18n" does not exist or is empty.
+
+# Starlight's built-in 404 page looks for a docs entry named 404 first, then uses its own.
+[WARN] [content] Entry docs → 404 was not found.

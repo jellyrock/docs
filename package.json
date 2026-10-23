@@ -15,6 +15,7 @@
 		"build:user": "npm run build --workspace user-docs",
 		"build:dev": "npm run build --workspace dev-docs",
 		"build": "npm run build:user && npm run build:dev",
+		"build:strict": "bash scripts/build-warnings.sh -- npm run build",
 		"check": "npm run check:astro && npm run check:eslint && npm run check:prettier",
 		"check:astro:user": "npm --workspace user-docs exec -- astro sync && npm --workspace user-docs exec -- astro check",
 		"check:astro:dev": "npm --workspace dev-docs exec -- astro sync && npm --workspace dev-docs exec -- astro check",

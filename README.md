@@ -76,6 +76,9 @@ docs/
 │   └── templates/
 │       ├── user-index.mdx    # home page splash for docs.jellyrock.app
 │       └── dev-index.mdx     # home page splash for dev.jellyrock.app
+├── scripts/
+│   ├── build-warnings.sh          # fails a build that prints an unexpected warning
+│   └── build-warnings-allowed.txt # warnings known to be harmless, each with its reason
 └── .github/workflows/
     └── deploy.yml
 ```
@@ -89,6 +92,7 @@ npm ci
 npm run dev:user     # http://localhost:4321  →  docs.jellyrock.app
 npm run dev:dev      # http://localhost:4322  →  dev.jellyrock.app
 npm run build        # builds both sites
+npm run build:strict # same, and fails on a warning not in scripts/build-warnings-allowed.txt (CI runs this)
 ```
 
 On the first build:
@@ -256,10 +260,11 @@ Required repo secrets (org-level, shared with sibling deploy repos):
 
 ## Troubleshooting
 
-| Symptom                                            | Likely cause                                 | Fix                                                                       |
-| -------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
-| Dev server serves stale `theme.css`                | Vite HMR didn't pick up the regenerated file | Restart `npm run dev:*`                                                   |
-| Old content keeps showing in dev                   | Build warned it could not update the clone   | Check your network, then restart `npm run dev:*` or rebuild               |
-| Deploy fails at rsync step                         | `VPS_KNOWN_HOSTS` secret missing or stale    | Refresh via `ssh-keyscan` on the control host, update the secret          |
-| `fetch-shared-ui.mjs` clones instead of symlinking | No sibling `../shared-ui/` present           | Expected in CI; for local dev, clone it as a sibling                      |
-| Alerts render as plain blockquotes                 | `remark-github-alerts` missing or removed    | Check the `markdown.remarkPlugins` array in both `astro.config.mjs` files |
+| Symptom                                            | Likely cause                                   | Fix                                                                                                                                        |
+| -------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dev server serves stale `theme.css`                | Vite HMR didn't pick up the regenerated file   | Restart `npm run dev:*`                                                                                                                    |
+| Old content keeps showing in dev                   | Build warned it could not update the clone     | Check your network, then restart `npm run dev:*` or rebuild                                                                                |
+| Deploy fails at rsync step                         | `VPS_KNOWN_HOSTS` secret missing or stale      | Refresh via `ssh-keyscan` on the control host, update the secret                                                                           |
+| `fetch-shared-ui.mjs` clones instead of symlinking | No sibling `../shared-ui/` present             | Expected in CI; for local dev, clone it as a sibling                                                                                       |
+| Alerts render as plain blockquotes                 | `remark-github-alerts` missing or removed      | Check the `markdown.remarkPlugins` array in both `astro.config.mjs` files                                                                  |
+| CI fails with "Build warnings not in …"            | A build warning that isn't on the allowed list | Fix the cause (often upstream docs or a dependency bump); if it's harmless, add it to `scripts/build-warnings-allowed.txt` with the reason |

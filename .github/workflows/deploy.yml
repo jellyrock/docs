@@ -40,11 +40,13 @@ jobs:
       - name: Run checks (astro + eslint + prettier)
         run: npm run check
 
+      # Lists build warnings on the run without failing it, so one upstream typo can't
+      # stop every upstream docs edit from shipping. CI's build:strict fails on them.
       - name: Build user docs
-        run: npm run build:user
+        run: bash scripts/build-warnings.sh --report-only -- npm run build:user
 
       - name: Build dev docs
-        run: npm run build:dev
+        run: bash scripts/build-warnings.sh --report-only -- npm run build:dev
 
       - name: Set up SSH
         env:
