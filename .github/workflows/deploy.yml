@@ -3,7 +3,7 @@ name: Deploy Docs
 on:
   push:
     branches: [main]
-  # Triggered by jellyrock/jellyrock when docs/user/** or docs/dev/** changes
+  # Sent by jellyrock/jellyrock's notify-docs.yml when a file fetch-docs.mjs reads changes on main
   repository_dispatch:
     types: [docs-update]
   workflow_dispatch:
