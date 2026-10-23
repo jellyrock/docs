@@ -35,5 +35,6 @@
 		"prettier-plugin-astro": "0.14.1",
 		"typescript": "5.9.3",
 		"typescript-eslint": "8.60.1"
-	}
+	},
+	"packageManager": "npm@11.21.1"
 }
