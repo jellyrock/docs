@@ -7,11 +7,12 @@ const REPO_URL = 'https://github.com/jellyrock/shared-ui.git';
 // Pinned shared-ui release for reproducible CI/prod builds. Renovate bumps this
 // (see renovate.json customManager); patch bumps auto-merge on green CI.
 // renovate: datasource=github-tags depName=jellyrock/shared-ui
-const SHARED_UI_REF = 'v1.1.2';
+const SHARED_UI_REF = 'v1.2.0';
 
 /**
- * Copy or symlink the JellyRock shared-ui (header, footer, tokens, nav data)
- * into the current project's src/shared-ui/ directory at build time.
+ * Copy or symlink the JellyRock shared-ui (header, footer, tokens, nav data, and
+ * the shared browser-test code in testing/) into the current project's
+ * src/shared-ui/ directory at build time.
  *
  * - Local dev: symlinks to ../../shared-ui (sibling of docs/)
  * - CI: clones from GitHub
@@ -38,7 +39,10 @@ export async function fetchSharedUi() {
 		return;
 	}
 
-	if (fs.existsSync(destDir) && fs.existsSync(path.join(destDir, 'nav.ts'))) {
+	// A copy from before testing/ existed counts as missing, so the browser tests never
+	// run against one without it.
+	const toCopy = ['nav.ts', 'tokens.css', 'components', 'testing'];
+	if (toCopy.every((name) => fs.existsSync(path.join(destDir, name)))) {
 		return;
 	}
 
@@ -47,8 +51,8 @@ export async function fetchSharedUi() {
 		execSync(`git clone --branch ${SHARED_UI_REF} --depth 1 ${REPO_URL} ${cloneDir}`, { stdio: 'inherit' });
 	}
 
+	fs.rmSync(destDir, { recursive: true, force: true });
 	fs.mkdirSync(destDir, { recursive: true });
-	const toCopy = ['nav.ts', 'tokens.css', 'components'];
 	for (const name of toCopy) {
 		const src = path.join(cloneDir, name);
 		const dest = path.join(destDir, name);

@@ -44,6 +44,8 @@ export default [
 			'**/src/shared-ui',
 			'.jellyrock-repo',
 			'.shared-ui-repo',
+			'playwright-report',
+			'test-results',
 		],
 	},
 ];
