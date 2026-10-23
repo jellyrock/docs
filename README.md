@@ -18,15 +18,17 @@ only in content source, home page splash, and page order.
 
 ## Tech stack
 
-| Piece               | Choice                                                                                                                   | Why                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| Framework           | [Astro 7](https://astro.build/) + [Starlight](https://starlight.astro.build/)                                            | First-class docs features: sidebar, search, dark mode, TOC.                           |
-| Markdown extensions | [`remark-github-alerts`](https://github.com/chrisweb/remark-github-alerts)                                               | Lets `> [!NOTE]` / `> [!TIP]` / `> [!CAUTION]` render on both GitHub and Starlight.   |
-| Shared UI           | [`jellyrock/shared-ui`](https://github.com/jellyrock/shared-ui)                                                          | One nav/footer/tokens source for all four JellyRock sites.                            |
-| Content pipeline    | Custom [`shared/fetch-docs.mjs`](shared/fetch-docs.mjs)                                                                  | Shallow-clones the app repo at build time so devs can edit markdown next to the code. |
-| Theme               | Auto-generated from [`jellyrock/settings.json`](https://github.com/jellyrock/jellyrock/blob/main/settings/settings.json) | CSS variables mirror the app's in-product themes.                                     |
-| Analytics           | [Umami](https://analytics.jellyrock.app) (self-hosted)                                                                   | Privacy-respecting; one website ID per site (see each site's `astro.config.mjs`).     |
-| Hosting             | Caddy `file_server` on the JellyRock VPS                                                                                 | Same pipeline as the homepage and API reference.                                      |
+| Piece               | Choice                                                                                                                   | Why                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Framework           | [Astro 7](https://astro.build/) + [Starlight](https://starlight.astro.build/)                                            | First-class docs features: sidebar, search, dark mode, TOC.                            |
+| Markdown extensions | [`remark-github-alerts`](https://github.com/chrisweb/remark-github-alerts)                                               | Lets `> [!NOTE]` / `> [!TIP]` / `> [!CAUTION]` render on both GitHub and Starlight.    |
+| Link rewriting      | Custom [`shared/remark-upstream-links.mjs`](shared/remark-upstream-links.mjs)                                            | Upstream links written for GitHub (`page.md`, `../../scripts/x.js`) work on the sites. |
+| Link checking       | [`starlight-links-validator`](https://github.com/HiDeoo/starlight-links-validator)                                       | A link to a missing page or `#anchor` fails the build.                                 |
+| Shared UI           | [`jellyrock/shared-ui`](https://github.com/jellyrock/shared-ui)                                                          | One nav/footer/tokens source for all four JellyRock sites.                             |
+| Content pipeline    | Custom [`shared/fetch-docs.mjs`](shared/fetch-docs.mjs)                                                                  | Shallow-clones the app repo at build time so devs can edit markdown next to the code.  |
+| Theme               | Auto-generated from [`jellyrock/settings.json`](https://github.com/jellyrock/jellyrock/blob/main/settings/settings.json) | CSS variables mirror the app's in-product themes.                                      |
+| Analytics           | [Umami](https://analytics.jellyrock.app) (self-hosted)                                                                   | Privacy-respecting; one website ID per site (see each site's `astro.config.mjs`).      |
+| Hosting             | Caddy `file_server` on the JellyRock VPS                                                                                 | Same pipeline as the homepage and API reference.                                       |
 
 ## How a build works
 
@@ -70,6 +72,7 @@ docs/
 ├── shared/
 │   ├── fetch-docs.mjs        # clones jellyrock, copies markdown, writes theme
 │   ├── fetch-shared-ui.mjs   # symlink (dev) or clone (CI) shared-ui
+│   ├── remark-upstream-links.mjs  # rewrites upstream relative links and images
 │   └── templates/
 │       ├── user-index.mdx    # home page splash for docs.jellyrock.app
 │       └── dev-index.mdx     # home page splash for dev.jellyrock.app
@@ -150,6 +153,20 @@ Callouts use the GitHub syntax so they render on both GitHub and the docs site:
 > [!CAUTION]
 > Don't do this.
 ```
+
+Links and images use GitHub-style relative paths, so they work when reading the
+markdown on GitHub too. At build time
+[`remark-upstream-links.mjs`](shared/remark-upstream-links.mjs) rewrites each one:
+
+| Upstream link                                    | On the site                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| `manage-subtitles.md#anchor` (same docs folder)  | `/manage-subtitles/#anchor`                                  |
+| `../dev/debug-flags.md` (the other docs folder)  | `https://dev.jellyrock.app/debug-flags/`                     |
+| `../../scripts/rta-run.js` (any other repo file) | `https://github.com/jellyrock/jellyrock/blob/main/scripts/…` |
+| `![alt](images/x.png)` or `<img src="images/…">` | An optimized image (a raw `<img>` loses its `width`)         |
+
+The build fails on a link to a page or `#anchor` that doesn't exist, and on a
+missing image, so a broken link blocks the docs deploy until it's fixed upstream.
 
 Push to `main` and the docs site rebuilds automatically via the repo-dispatch
 webhook in `jellyrock/jellyrock`'s `build-docs.yml`.
