@@ -20,7 +20,7 @@ only in content source, home page splash, and page order.
 
 | Piece               | Choice                                                                                                                   | Why                                                                                   |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| Framework           | [Astro 5](https://astro.build/) + [Starlight](https://starlight.astro.build/)                                            | First-class docs features: sidebar, search, dark mode, TOC.                           |
+| Framework           | [Astro 7](https://astro.build/) + [Starlight](https://starlight.astro.build/)                                            | First-class docs features: sidebar, search, dark mode, TOC.                           |
 | Markdown extensions | [`remark-github-alerts`](https://github.com/chrisweb/remark-github-alerts)                                               | Lets `> [!NOTE]` / `> [!TIP]` / `> [!CAUTION]` render on both GitHub and Starlight.   |
 | Shared UI           | [`jellyrock/shared-ui`](https://github.com/jellyrock/shared-ui)                                                          | One nav/footer/tokens source for all four JellyRock sites.                            |
 | Content pipeline    | Custom [`shared/fetch-docs.mjs`](shared/fetch-docs.mjs)                                                                  | Shallow-clones the app repo at build time so devs can edit markdown next to the code. |
