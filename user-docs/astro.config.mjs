@@ -51,12 +51,6 @@ export default defineConfig({
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/jellyrock/jellyrock' },
 				{ icon: 'matrix', label: 'Matrix', href: 'https://matrix.to/#/#jellyrock-app:matrix.org' },
 			],
-			editLink: {
-				// Note: the edit link path will include src/content/docs/ as a prefix.
-				// Starlight doesn't support stripping this, so edit links won't resolve
-				// directly to the jellyrock repo. TODO: upstream fix or custom Edit component.
-				baseUrl: 'https://github.com/jellyrock/jellyrock/edit/main/docs/user/',
-			},
 		}),
 	],
 	markdown: {

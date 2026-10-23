@@ -7,6 +7,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const REPO_URL = 'https://github.com/jellyrock/jellyrock.git';
 const CLONE_DIR = path.resolve(__dirname, '..', '.jellyrock-repo');
+// Each page's "Edit page" link: this plus the file's path in jellyrock/jellyrock. The clone
+// tracks main (ensureClone), so main is the branch the page was built from.
+const EDIT_BASE_URL = 'https://github.com/jellyrock/jellyrock/edit/main/';
 
 /**
  * Fetch JellyRock markdown docs from the main repo into the current Starlight
@@ -216,6 +219,11 @@ starlight-toc nav a[aria-current='true'] {
  *      frontmatter is preserved (topic:, last-reviewed:, etc.)
  *   3. Frontmatter with title: → pass through unchanged
  *
+ * Every copied page also gets an `editUrl:` pointing at its file in
+ * jellyrock/jellyrock, unless its frontmatter already sets one. Starlight
+ * would otherwise build the link from the file's path in this repo
+ * (src/content/docs/…), which doesn't exist upstream.
+ *
  * The H1 is removed when used as the title source, so Starlight doesn't
  * render it twice.
  *
@@ -238,11 +246,13 @@ function copyMarkdownWithFrontmatter(srcDir, destDir) {
 		}
 
 		let content = fs.readFileSync(srcPath, 'utf8');
+		const upstreamPath = path.relative(CLONE_DIR, srcPath).split(path.sep).join('/');
+		const editUrlLine = `editUrl: ${JSON.stringify(new URL(upstreamPath, EDIT_BASE_URL).href)}`;
 
 		// Case 1+2 share title-extraction logic; just differ in what we
 		// write at the end.
 		const hasFrontmatter = content.startsWith('---\n');
-		let existingFm = '';
+		let existingFm;
 		let body = content;
 		if (hasFrontmatter) {
 			const fmEnd = content.indexOf('\n---\n', 4);
@@ -255,11 +265,15 @@ function copyMarkdownWithFrontmatter(srcDir, destDir) {
 			existingFm = content.slice(4, fmEnd);
 			body = content.slice(fmEnd + 5);
 
+			if (!/^editUrl:/m.test(existingFm)) existingFm += `\n${editUrlLine}`;
+
 			// Case 3 — already has title:
 			if (/^title:/m.test(existingFm)) {
-				fs.writeFileSync(destPath, content);
+				fs.writeFileSync(destPath, `---\n${existingFm}\n---\n${body}`);
 				continue;
 			}
+		} else {
+			existingFm = editUrlLine;
 		}
 
 		// Extract title from markdown H1, HTML <h1>, or filename as fallback
@@ -288,7 +302,6 @@ function copyMarkdownWithFrontmatter(srcDir, destDir) {
 		}
 
 		const titleLine = `title: ${JSON.stringify(title)}`;
-		const newFm = existingFm ? `---\n${titleLine}\n${existingFm}\n---\n\n` : `---\n${titleLine}\n---\n\n`;
-		fs.writeFileSync(destPath, newFm + body);
+		fs.writeFileSync(destPath, `---\n${titleLine}\n${existingFm}\n---\n\n${body}`);
 	}
 }
