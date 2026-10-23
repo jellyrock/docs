@@ -1,0 +1,14 @@
+// Type-checks the browser tests (npm run check:tests). Each site's own tsconfig covers its src/.
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"noEmit": true,
+		"skipLibCheck": true,
+		"isolatedModules": true,
+		"types": ["node"]
+	},
+	"include": ["playwright.config.ts", "tests/**/*.ts"]
+}

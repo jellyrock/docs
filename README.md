@@ -39,7 +39,7 @@ push to jellyrock/jellyrock main (notify-docs.yml)
                                            ▼
 push to jellyrock/docs (main)  ─▶  .github/workflows/deploy.yml
                                            │
-                                           ├─ npm ci
+                                           ├─ gates: ci.yml (npm ci, npm run check, build, browser tests)
                                            │
                                            ├─ build:user                       build:dev
                                            │  ├─ fetch-shared-ui.mjs           ├─ fetch-shared-ui.mjs
@@ -50,7 +50,9 @@ push to jellyrock/docs (main)  ─▶  .github/workflows/deploy.yml
                                            │  │   └─ write splash index.mdx    │   └─ write splash index.mdx
                                            │  └─ astro build → user-docs/dist/ └─ astro build → dev-docs/dist/
                                            │
-                                           └─ rsync dist/ → VPS:
+                                           ├─ browser tests (functional) on both builds
+                                           │
+                                           └─ rsync the tested dist/ → VPS:
                                                 /opt/jellyrock/user-docs/
                                                 /opt/jellyrock/dev-docs/
                                                     │
@@ -78,8 +80,14 @@ docs/
 │       └── dev-index.mdx     # home page splash for dev.jellyrock.app
 ├── scripts/
 │   ├── build-warnings.sh          # fails a build that prints an unexpected warning
-│   └── build-warnings-allowed.txt # warnings known to be harmless, each with its reason
+│   ├── build-warnings-allowed.txt # warnings known to be harmless, each with its reason
+│   └── playwright-docker.sh       # runs Playwright in the image CI uses
+├── tests/
+│   ├── e2e/                  # browser tests: one spec per site, screenshots, baselines
+│   └── support/production-headers.json  # the security headers Caddy sends
+├── playwright.config.ts
 └── .github/workflows/
+    ├── ci.yml                # PRs, and the gates every deploy runs first
     └── deploy.yml
 ```
 
@@ -93,6 +101,7 @@ npm run dev:user     # http://localhost:4321  →  docs.jellyrock.app
 npm run dev:dev      # http://localhost:4322  →  dev.jellyrock.app
 npm run build        # builds both sites
 npm run build:strict # same, and fails on a warning not in scripts/build-warnings-allowed.txt (CI runs this)
+npm test             # browser tests against both builds (see Browser tests)
 ```
 
 On the first build:
@@ -250,6 +259,63 @@ Starlight renders plain HTML, so three paths work today:
 Each site has its own website in the self-hosted Umami dashboard, wired up via
 the `head` array in its `astro.config.mjs`.
 
+## Browser tests
+
+CI opens both built sites in a real browser (Playwright, Chromium) at desktop
+and phone size before anything merges or deploys, so a dependency bump or an
+upstream docs change that breaks a page turns CI red instead of reaching the
+sites. Each build is served the way production serves it: the same security
+headers (including the CSP), redirects and 404 handling.
+
+The server and the checks every JellyRock site shares come from shared-ui's
+[`testing/`](https://github.com/jellyrock/shared-ui/tree/main/testing), which
+the build fetches into each site's `src/shared-ui/testing/`. This repo keeps
+the config, the specs, the screenshots and the production headers.
+
+| Test                                                                                                   | Fails when                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`tests/e2e/user-docs.spec.ts`](tests/e2e/user-docs.spec.ts), [`dev-docs`](tests/e2e/dev-docs.spec.ts) | Any page in the sitemap has a script error, something the CSP blocks, a failed or cross-origin request, a broken image, sideways scrolling on a phone, or a missing header/footer; an internal link or anchor redirects or is broken; a missing page doesn't return 404 |
+| [`tests/e2e/screenshots.ts`](tests/e2e/screenshots.ts)                                                 | A landing page or 404 page looks different from its approved screenshot in [`tests/e2e/__screenshots__/`](tests/e2e/__screenshots__/)                                                                                                                                   |
+
+Screenshots cover only the pages this repo owns. Content pages come from
+jellyrock/jellyrock `main` at build time and change there without a PR here,
+so they get the functional checks only; the sidebar's page list, the
+previous/next links and images are masked for the same reason. Deploys,
+including the ones upstream docs edits trigger, run the functional tests but
+not the screenshots: the theme colours come from upstream too, and a deploy
+has no PR to refresh baselines in.
+
+```bash
+npm run build                # the tests run against user-docs/dist and dev-docs/dist
+npm test                     # everything, inside the same Playwright image CI uses
+npm run test:e2e             # functional tests only, with a local browser
+                             # (first time: npx playwright install chromium)
+npm run test:visual          # screenshot tests only (Docker)
+npm run test:visual:update   # accept the current look as the new baseline (Docker)
+```
+
+**When CI goes red,** open the failed run's **playwright-report** artifact and
+its `index.html`: each failure shows the error, and each screenshot failure
+shows expected, actual and a diff. A failure on a content page usually comes
+from the upstream markdown: fix it in jellyrock/jellyrock.
+
+**After a deliberate design change** (or a shared-ui, Starlight or upstream
+theme change that changes how the pages look), the screenshot tests go red as
+intended. Check the diff is what you meant, run
+`npm run build && npm run test:visual:update`, and commit the updated PNGs in
+the same PR.
+
+Screenshots only match inside the Playwright image, because fonts render
+differently between machines, which is why those commands run through Docker
+([`scripts/playwright-docker.sh`](scripts/playwright-docker.sh)). The image is
+pinned in `.github/workflows/ci.yml`, and Renovate moves it together with
+`@playwright/test`.
+
+The production headers are a copy of what Caddy sends (its config lives in
+`jellyrock/infra`), kept in
+[`tests/support/production-headers.json`](tests/support/production-headers.json).
+Update it when the docs sites' headers change.
+
 ## Deployment secrets
 
 Required repo secrets (org-level, shared with sibling deploy repos):
@@ -260,11 +326,12 @@ Required repo secrets (org-level, shared with sibling deploy repos):
 
 ## Troubleshooting
 
-| Symptom                                            | Likely cause                                   | Fix                                                                                                                                        |
-| -------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Dev server serves stale `theme.css`                | Vite HMR didn't pick up the regenerated file   | Restart `npm run dev:*`                                                                                                                    |
-| Old content keeps showing in dev                   | Build warned it could not update the clone     | Check your network, then restart `npm run dev:*` or rebuild                                                                                |
-| Deploy fails at rsync step                         | `VPS_KNOWN_HOSTS` secret missing or stale      | Refresh via `ssh-keyscan` on the control host, update the secret                                                                           |
-| `fetch-shared-ui.mjs` clones instead of symlinking | No sibling `../shared-ui/` present             | Expected in CI; for local dev, clone it as a sibling                                                                                       |
-| Alerts render as plain blockquotes                 | `remark-github-alerts` missing or removed      | Check the `markdown.remarkPlugins` array in both `astro.config.mjs` files                                                                  |
-| CI fails with "Build warnings not in …"            | A build warning that isn't on the allowed list | Fix the cause (often upstream docs or a dependency bump); if it's harmless, add it to `scripts/build-warnings-allowed.txt` with the reason |
+| Symptom                                            | Likely cause                                                           | Fix                                                                                                                                        |
+| -------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Dev server serves stale `theme.css`                | Vite HMR didn't pick up the regenerated file                           | Restart `npm run dev:*`                                                                                                                    |
+| Old content keeps showing in dev                   | Build warned it could not update the clone                             | Check your network, then restart `npm run dev:*` or rebuild                                                                                |
+| Deploy fails at rsync step                         | `VPS_KNOWN_HOSTS` secret missing or stale                              | Refresh via `ssh-keyscan` on the control host, update the secret                                                                           |
+| `fetch-shared-ui.mjs` clones instead of symlinking | No sibling `../shared-ui/` present                                     | Expected in CI; for local dev, clone it as a sibling                                                                                       |
+| Alerts render as plain blockquotes                 | `remark-github-alerts` missing or removed                              | Check the `markdown.remarkPlugins` array in both `astro.config.mjs` files                                                                  |
+| A browser test fails only on a content page        | The upstream markdown (an external image the CSP blocks, a wide table) | Open the playwright-report artifact; fix the page in jellyrock/jellyrock                                                                   |
+| CI fails with "Build warnings not in …"            | A build warning that isn't on the allowed list                         | Fix the cause (often upstream docs or a dependency bump); if it's harmless, add it to `scripts/build-warnings-allowed.txt` with the reason |

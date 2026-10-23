@@ -4,10 +4,21 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  # deploy.yml calls this workflow before every deploy, so what ships is exactly what was tested.
+  workflow_call:
+    inputs:
+      deploy:
+        description: >-
+          Called by a deploy: build warnings are listed but don't fail it, and screenshots are not
+          compared. Both depend on upstream content (jellyrock/jellyrock main), which a deploy
+          picks up with no PR here to fix it in.
+        type: boolean
+        default: false
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Cancel superseded PR runs; never cancel a run a deploy is waiting on.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -35,6 +46,83 @@ jobs:
       - name: Run checks (astro + eslint + prettier)
         run: npm run check
 
-      # Fails on a build warning not in scripts/build-warnings-allowed.txt.
-      - name: Build (gate deploy-time regressions on PRs)
+      # A PR fails on a build warning not in scripts/build-warnings-allowed.txt; a deploy only
+      # lists them, so one upstream typo can't stop every upstream docs edit from shipping.
+      - name: Build
+        if: ${{ !inputs.deploy }}
         run: npm run build:strict
+
+      - name: Build (warnings reported, not failing)
+        if: ${{ inputs.deploy }}
+        run: bash scripts/build-warnings.sh --report-only -- npm run build
+
+      - name: Upload builds
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: |
+            user-docs/dist/
+            dev-docs/dist/
+          if-no-files-found: error
+          retention-days: 7
+
+      # The shared-ui the build fetched, so the browser tests use its testing/ code from the
+      # same release.
+      - name: Upload shared-ui
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: shared-ui
+          path: user-docs/src/shared-ui/
+          if-no-files-found: error
+          retention-days: 7
+
+  browser-tests:
+    needs: check
+    runs-on: ubuntu-latest
+    # Same image `npm test` uses locally (scripts/playwright-docker.sh reads it from here), so
+    # screenshots match pixel-for-pixel. Renovate moves it together with @playwright/test.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:7852dc5a7d72f5fe458a597d690f6c42fbc8e9e26ddfa95f8e6ef552558d9bbf
+      options: --user 1001 --ipc=host
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      - name: Setup npm
+        run: npm install -g "$(node -p 'require("./package.json").packageManager')"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download builds
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+
+      - name: Download shared-ui
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: shared-ui
+          path: user-docs/src/shared-ui/
+
+      - name: Run browser tests (functional + screenshots)
+        if: ${{ !inputs.deploy }}
+        run: npx playwright test
+
+      - name: Run browser tests (functional only)
+        if: ${{ inputs.deploy }}
+        run: npx playwright test --grep-invert @visual
+
+      # Screenshot diffs, traces and failure details. Open index.html from the artifact.
+      - name: Upload test report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
