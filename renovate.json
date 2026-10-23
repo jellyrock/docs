@@ -12,7 +12,7 @@
 		},
 		{
 			"customType": "regex",
-			"description": "Track the pinned shared-ui release that shared/fetch-shared-ui.mjs clones at build time. It follows the org preset like any dependency: patch and minor automerge after their soak once CI is green; majors wait for review.",
+			"description": "Track the pinned shared-ui release that shared/fetch-shared-ui.mjs clones at build time. It follows the org preset like any dependency: patch automerges after its soak once CI is green; minor and major wait for review (see packageRules).",
 			"managerFilePatterns": ["/^shared/fetch-shared-ui\\.mjs$/"],
 			"matchStrings": [
 				"datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s*\\n\\s*const SHARED_UI_REF = '(?<currentValue>[^']+)'"
@@ -20,6 +20,11 @@
 		}
 	],
 	"packageRules": [
+		{
+			"description": "CI is build+lint only, so minors need human review (renovate/README.md, Automerge contract, point 3): a breaking minor can pass the build and fail in the browser. Patch and digest still automerge. Remove this rule once browser tests are a required check here (jellyrock/.github#11).",
+			"matchUpdateTypes": ["minor"],
+			"automerge": false
+		},
 		{
 			"description": "Label vendored-grammar bumps so they're easy to spot in the queue; do not automerge — humans review the upstream release notes before adopting.",
 			"matchPackageNames": ["rokucommunity/vscode-brightscript-language"],
