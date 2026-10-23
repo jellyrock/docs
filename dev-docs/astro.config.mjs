@@ -37,7 +37,9 @@ export default defineConfig({
 			favicon: '/favicon.png',
 			expressiveCode: {
 				shiki: {
-					langs: [brightscriptGrammar],
+					// The grammar names itself `BrightScript` and Shiki matches names exactly, so register
+					// it under the name the code fences use. Set here, not in the JSON: the sync overwrites it.
+					langs: [{ ...brightscriptGrammar, name: 'brightscript' }],
 					langAlias: {
 						brighterscript: 'brightscript',
 						bs: 'brightscript',
