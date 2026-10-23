@@ -10,7 +10,8 @@ on:
 
 concurrency:
   group: deploy-docs
-  cancel-in-progress: true
+  # Never stop a deploy halfway through rsync. A newer push waits, then deploys.
+  cancel-in-progress: false
 
 permissions:
   contents: read
