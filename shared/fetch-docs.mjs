@@ -20,39 +20,33 @@ export async function fetchDocs(docType) {
 	const publicDir = path.join(projectRoot, 'public');
 	const themeCssPath = path.join(projectRoot, 'src/styles/theme.css');
 
-	const hasContent = fs.existsSync(contentDir) && fs.readdirSync(contentDir).length > 0;
-	const hasFavicon = fs.existsSync(path.join(publicDir, 'favicon.png'));
-
-	// Theme.css is always regenerated: cheap to produce and ensures any change
-	// to the generation logic (or settings.json in the repo) is picked up.
-	// Content and favicon are cached because they're expensive to re-fetch.
-	const skipFetch = hasContent && hasFavicon;
-
-	if (!skipFetch) {
-		console.log(`Fetching ${docType} assets from jellyrock repo...`);
-	}
-
+	// Every build updates the clone and re-copies everything from it, so a local
+	// build uses the same upstream content as CI's fresh clone.
+	console.log(`Fetching ${docType} assets from jellyrock repo...`);
 	ensureClone();
+	const upstream = execSync(`git -C ${CLONE_DIR} log -1 --format="%h %cs"`, { encoding: 'utf8' }).trim();
+	console.log(`Using jellyrock/jellyrock ${upstream}`);
 
-	if (!hasContent) {
-		// Copy docs markdown, adding Starlight frontmatter from first H1 heading
-		const srcDocs = path.join(CLONE_DIR, 'docs', docType);
-		fs.mkdirSync(contentDir, { recursive: true });
-		copyMarkdownWithFrontmatter(srcDocs, contentDir);
-		console.log(`Copied ${docType} docs → src/content/docs`);
+	// Start from an empty content dir so pages removed or renamed upstream don't linger.
+	fs.rmSync(contentDir, { recursive: true, force: true });
 
-		// Copy docs screenshots referenced by markdown. Skip markdown files: anything .md
-		// under src/content/docs becomes a Starlight page, and upstream's
-		// docs/screenshots/README.md (no title frontmatter) fails the collection schema.
-		const srcScreenshots = path.join(CLONE_DIR, 'docs', 'screenshots');
-		if (fs.existsSync(srcScreenshots)) {
-			const destScreenshots = path.join(contentDir, 'screenshots');
-			fs.cpSync(srcScreenshots, destScreenshots, {
-				recursive: true,
-				filter: (src) => !/\.(md|mdx|markdown)$/i.test(src),
-			});
-			console.log('Copied screenshots → src/content/docs/screenshots');
-		}
+	// Copy docs markdown, adding Starlight frontmatter from first H1 heading
+	const srcDocs = path.join(CLONE_DIR, 'docs', docType);
+	fs.mkdirSync(contentDir, { recursive: true });
+	copyMarkdownWithFrontmatter(srcDocs, contentDir);
+	console.log(`Copied ${docType} docs → src/content/docs`);
+
+	// Copy docs screenshots referenced by markdown. Skip markdown files: anything .md
+	// under src/content/docs becomes a Starlight page, and upstream's
+	// docs/screenshots/README.md (no title frontmatter) fails the collection schema.
+	const srcScreenshots = path.join(CLONE_DIR, 'docs', 'screenshots');
+	if (fs.existsSync(srcScreenshots)) {
+		const destScreenshots = path.join(contentDir, 'screenshots');
+		fs.cpSync(srcScreenshots, destScreenshots, {
+			recursive: true,
+			filter: (src) => !/\.(md|mdx|markdown)$/i.test(src),
+		});
+		console.log('Copied screenshots → src/content/docs/screenshots');
 	}
 
 	// Always (re)write the splash index page from our template — it's our file,
@@ -67,12 +61,10 @@ export async function fetchDocs(docType) {
 	}
 
 	// Copy square JR logo as favicon
-	if (!hasFavicon) {
-		const squareLogoSrc = path.join(CLONE_DIR, 'resources', 'branding', 'logo-jr.png');
-		if (fs.existsSync(squareLogoSrc)) {
-			fs.mkdirSync(publicDir, { recursive: true });
-			fs.copyFileSync(squareLogoSrc, path.join(publicDir, 'favicon.png'));
-		}
+	const squareLogoSrc = path.join(CLONE_DIR, 'resources', 'branding', 'logo-jr.png');
+	if (fs.existsSync(squareLogoSrc)) {
+		fs.mkdirSync(publicDir, { recursive: true });
+		fs.copyFileSync(squareLogoSrc, path.join(publicDir, 'favicon.png'));
 	}
 
 	// ALWAYS regenerate theme.css from settings.json. Cheap, avoids stale state.
@@ -91,7 +83,8 @@ export async function fetchDocs(docType) {
 	}
 }
 
-/** Ensure the jellyrock repo clone exists with required sparse-checkout paths.
+/** Ensure the jellyrock repo clone exists with required sparse-checkout paths
+ * and matches upstream main.
  * We include both docs/user and docs/dev so the clone is shared between the
  * user-docs and dev-docs builds without needing a reclone. */
 function ensureClone() {
@@ -116,6 +109,17 @@ function ensureClone() {
 		}
 	} catch {
 		// If anything fails, ignore — the fetch will surface real errors later.
+	}
+	// Move to upstream main. The clone is a cache, so reset + clean also drop any
+	// edits made inside it, which would otherwise block the update.
+	try {
+		execSync(`git -C ${CLONE_DIR} fetch --quiet --depth 1 origin main`, { stdio: 'inherit' });
+		execSync(`git -C ${CLONE_DIR} reset --quiet --hard FETCH_HEAD`, { stdio: 'inherit' });
+		execSync(`git -C ${CLONE_DIR} clean --quiet -fd`, { stdio: 'inherit' });
+	} catch {
+		// Offline (or a second build updating at the same moment): build from the
+		// copy we already have rather than failing.
+		console.warn(`Could not update ${CLONE_DIR}; building from the copy it already has.`);
 	}
 }
 
