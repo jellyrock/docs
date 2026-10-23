@@ -7,7 +7,7 @@ const REPO_URL = 'https://github.com/jellyrock/shared-ui.git';
 // Pinned shared-ui release for reproducible CI/prod builds. Renovate bumps this
 // (see renovate.json customManager); patch bumps auto-merge on green CI.
 // renovate: datasource=github-tags depName=jellyrock/shared-ui
-const SHARED_UI_REF = 'v1.2.0';
+const SHARED_UI_REF = 'v1.2.1';
 
 /**
  * Copy or symlink the JellyRock shared-ui (header, footer, tokens, nav data, and
