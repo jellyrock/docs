@@ -24,11 +24,11 @@ only in content source, home page splash, and page order.
 | Markdown extensions | [`remark-github-alerts`](https://github.com/chrisweb/remark-github-alerts)                                               | Lets `> [!NOTE]` / `> [!TIP]` / `> [!CAUTION]` render on both GitHub and Starlight.    |
 | Link rewriting      | Custom [`shared/remark-upstream-links.mjs`](shared/remark-upstream-links.mjs)                                            | Upstream links written for GitHub (`page.md`, `../../scripts/x.js`) work on the sites. |
 | Link checking       | [`starlight-links-validator`](https://github.com/HiDeoo/starlight-links-validator)                                       | A link to a missing page or `#anchor` fails the build.                                 |
-| Shared UI           | [`jellyrock/shared-ui`](https://github.com/jellyrock/shared-ui)                                                          | One nav/footer/tokens source for all four JellyRock sites.                             |
+| Shared UI           | [`jellyrock/shared-ui`](https://github.com/jellyrock/shared-ui)                                                          | One nav/footer/tokens source for all three JellyRock sites.                            |
 | Content pipeline    | Custom [`shared/fetch-docs.mjs`](shared/fetch-docs.mjs)                                                                  | Shallow-clones the app repo at build time so devs can edit markdown next to the code.  |
 | Theme               | Auto-generated from [`jellyrock/settings.json`](https://github.com/jellyrock/jellyrock/blob/main/settings/settings.json) | CSS variables mirror the app's in-product themes.                                      |
 | Analytics           | [Umami](https://analytics.jellyrock.app) (self-hosted)                                                                   | Privacy-respecting; one website ID per site (see each site's `astro.config.mjs`).      |
-| Hosting             | Caddy `file_server` on the JellyRock VPS                                                                                 | Same pipeline as the homepage and API reference.                                       |
+| Hosting             | Caddy `file_server` on the JellyRock VPS                                                                                 | Same pipeline as the homepage.                                                         |
 
 ## How a build works
 
