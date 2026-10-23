@@ -1,11 +1,14 @@
 // @ts-check
+import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
+import starlightLinksValidator from 'starlight-links-validator';
 import remarkGithubAlerts from 'remark-github-alerts';
 import { fetchDocs } from '../shared/fetch-docs.mjs';
 import { fetchSharedUi } from '../shared/fetch-shared-ui.mjs';
+import { DOCS_SITES, remarkUpstreamLinks } from '../shared/remark-upstream-links.mjs';
 
 // Pull shared UI + markdown from repos at build time
 await fetchSharedUi();
@@ -23,9 +26,12 @@ export default defineConfig({
 	// Astro 7 defaults to 'jsx', which drops the whitespace between elements on separate lines.
 	// true is the lossless compression Astro 6 used (and .prettierrc.mjs formats for).
 	compressHTML: true,
-	site: 'https://dev.jellyrock.app',
+	site: DOCS_SITES.dev,
 	integrations: [
 		starlight({
+			// Fails the build on a link to a page or #anchor that doesn't exist. `#top` needs no
+			// anchor: browsers scroll to the top of the page for it (HTML spec, as on GitHub).
+			plugins: [starlightLinksValidator({ exclude: ({ link }) => link === '#top' })],
 			title: 'JellyRock Dev Guide',
 			description: 'Developer documentation for JellyRock, a Jellyfin client for Roku.',
 			favicon: '/favicon.png',
@@ -70,7 +76,13 @@ export default defineConfig({
 	markdown: {
 		// remark plugins need the unified processor; Astro 7 defaults to Sätteri.
 		processor: unified({
-			remarkPlugins: [remarkGithubAlerts],
+			remarkPlugins: [
+				remarkGithubAlerts,
+				[
+					remarkUpstreamLinks,
+					{ docType: 'dev', contentDir: fileURLToPath(new URL('./src/content/docs/', import.meta.url)) },
+				],
+			],
 		}),
 	},
 });
