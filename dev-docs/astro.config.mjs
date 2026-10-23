@@ -1,6 +1,7 @@
 // @ts-check
 import { readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
 import remarkGithubAlerts from 'remark-github-alerts';
 import { fetchDocs } from '../shared/fetch-docs.mjs';
@@ -19,6 +20,9 @@ const brightscriptGrammar = JSON.parse(
 
 // https://astro.build/config
 export default defineConfig({
+	// Astro 7 defaults to 'jsx', which drops the whitespace between elements on separate lines.
+	// true is the lossless compression Astro 6 used (and .prettierrc.mjs formats for).
+	compressHTML: true,
 	site: 'https://dev.jellyrock.app',
 	integrations: [
 		starlight({
@@ -64,6 +68,9 @@ export default defineConfig({
 		}),
 	],
 	markdown: {
-		remarkPlugins: [remarkGithubAlerts],
+		// remark plugins need the unified processor; Astro 7 defaults to Sätteri.
+		processor: unified({
+			remarkPlugins: [remarkGithubAlerts],
+		}),
 	},
 });

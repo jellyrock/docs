@@ -1,15 +1,14 @@
 ---
-import config from 'virtual:starlight/user-config';
-import Search from 'virtual:starlight/components/Search';
+// Starlight's public Search component. Both sites use Pagefind and don't override Search,
+// so it always renders (Starlight 0.42 no longer types the virtual:starlight/* modules).
+import Search from '@astrojs/starlight/components/Search.astro';
 import SharedHeader from '../shared-ui/components/SiteHeader.astro';
-
-const shouldRenderSearch = config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
 ---
 
 <SharedHeader>
-	{shouldRenderSearch && <div slot="extra" class="jr-docs-search">
+	<div slot="extra" class="jr-docs-search">
 		<Search />
-	</div>}
+	</div>
 </SharedHeader>
 
 <style>
