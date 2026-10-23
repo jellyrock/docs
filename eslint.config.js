@@ -1,29 +1,20 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import eslintPluginAstro from 'eslint-plugin-astro';
-import astroEslintParser from 'astro-eslint-parser';
 import typescriptParser from '@typescript-eslint/parser';
 import globals from 'globals';
 
 export default [
 	js.configs.recommended,
-	...eslintPluginAstro.configs['flat/recommended'],
 	...tseslint.configs.recommended,
+	// After typescript-eslint, whose config sets its parser for every file: the Astro
+	// config must win for .astro files (astro-eslint-parser, with the TS parser inside).
+	...eslintPluginAstro.configs['flat/recommended'],
 	{
 		languageOptions: {
 			globals: {
 				...globals.browser,
 				...globals.node,
-			},
-		},
-	},
-	{
-		files: ['**/*.astro'],
-		languageOptions: {
-			parser: astroEslintParser,
-			parserOptions: {
-				parser: '@typescript-eslint/parser',
-				extraFileExtensions: ['.astro'],
 			},
 		},
 	},
