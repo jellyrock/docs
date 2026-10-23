@@ -94,7 +94,10 @@ On the first build:
 - [`shared/fetch-docs.mjs`](shared/fetch-docs.mjs) sparse-clones
   [`jellyrock/jellyrock`](https://github.com/jellyrock/jellyrock) into
   `.jellyrock-repo/` at the repo root, then copies markdown into each site's
-  content collection. Delete `.jellyrock-repo/` to force a fresh pull.
+  content collection. Every build updates the clone to upstream `main` (it logs
+  `Using jellyrock/jellyrock <commit> <date>`) and re-copies the content. The
+  clone is a cache: edits made inside it are discarded on the next build, so
+  edit docs in the jellyrock repo instead.
 
 This is the same path CI uses — no setup required.
 
@@ -234,7 +237,7 @@ Required repo secrets (org-level, shared with sibling deploy repos):
 | Symptom                                            | Likely cause                                 | Fix                                                                       |
 | -------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------- |
 | Dev server serves stale `theme.css`                | Vite HMR didn't pick up the regenerated file | Restart `npm run dev:*`                                                   |
-| Old content keeps showing in dev                   | `.jellyrock-repo/` cache is stale            | `rm -rf .jellyrock-repo` then rebuild                                     |
+| Old content keeps showing in dev                   | Build warned it could not update the clone   | Check your network, then restart `npm run dev:*` or rebuild               |
 | Deploy fails at rsync step                         | `VPS_KNOWN_HOSTS` secret missing or stale    | Refresh via `ssh-keyscan` on the control host, update the secret          |
 | `fetch-shared-ui.mjs` clones instead of symlinking | No sibling `../shared-ui/` present           | Expected in CI; for local dev, clone it as a sibling                      |
 | Alerts render as plain blockquotes                 | `remark-github-alerts` missing or removed    | Check the `markdown.remarkPlugins` array in both `astro.config.mjs` files |
