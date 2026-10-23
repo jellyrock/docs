@@ -29,10 +29,11 @@ trap 'rm -f "$log" "$patterns"' EXIT
 
 "$@" 2>&1 | tee "$log"
 
-# Astro sometimes prints a warning mid-line (after a page path), so match from the tag on.
 # Comments and blank lines are dropped first: an empty pattern would allow everything.
 grep -vE '^[[:space:]]*(#|$)' "$allowed_file" >"$patterns" || true
-mapfile -t unexpected < <(grep -o '\[WARN\].*' "$log" | grep -vF -f "$patterns" | sort -u || true)
+# Colour codes come out first: in CI, Astro colours its output, even inside the warning text.
+# It sometimes prints a warning mid-line (after a page path), so match from the tag on.
+mapfile -t unexpected < <(sed -E 's/\x1b\[[0-9;]*m//g' "$log" | grep -o '\[WARN\].*' | grep -vF -f "$patterns" | sort -u || true)
 
 if [[ ${#unexpected[@]} -eq 0 ]]; then
 	echo "Build warnings: none beyond the allowed list."
