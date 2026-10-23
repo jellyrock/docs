@@ -88,6 +88,8 @@ export async function fetchDocs(docType) {
  * We include both docs/user and docs/dev so the clone is shared between the
  * user-docs and dev-docs builds without needing a reclone. */
 function ensureClone() {
+	// jellyrock/jellyrock's notify-docs.yml redeploys these sites when any of these
+	// paths changes on main. Change both lists together.
 	const requiredPaths = ['docs/user', 'docs/dev', 'docs/screenshots', 'resources/branding', 'settings'];
 	if (!fs.existsSync(CLONE_DIR)) {
 		execSync(`git clone --depth 1 --filter=blob:none --sparse ${REPO_URL} ${CLONE_DIR}`, { stdio: 'inherit' });

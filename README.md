@@ -33,7 +33,7 @@ only in content source, home page splash, and page order.
 ## How a build works
 
 ```text
-push to jellyrock/jellyrock (docs/**)
+push to jellyrock/jellyrock main (notify-docs.yml)
     │
     └─▶ repository_dispatch (docs-update) ─┐
                                            ▼
@@ -168,8 +168,11 @@ markdown on GitHub too. At build time
 The build fails on a link to a page or `#anchor` that doesn't exist, and on a
 missing image, so a broken link blocks the docs deploy until it's fixed upstream.
 
-Push to `main` and the docs site rebuilds automatically via the repo-dispatch
-webhook in `jellyrock/jellyrock`'s `build-docs.yml`.
+Push to `main` and the docs sites redeploy within minutes: `jellyrock/jellyrock`'s
+`notify-docs.yml` sends `docs-update` here whenever a file the build reads changes
+(the paths `ensureClone()` in [`fetch-docs.mjs`](shared/fetch-docs.mjs) checks out).
+Broken links and anchors in `docs/user` and `docs/dev` fail that repo's
+`docs-check` on the PR, before they reach this build.
 
 ### Changing the home page splash
 
