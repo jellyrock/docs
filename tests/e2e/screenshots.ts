@@ -29,6 +29,10 @@ export function defineScreenshotTests(test: typeof playwrightTest, expect: typeo
 				await scrollThrough(page);
 				await page.evaluate(() => window.scrollTo(0, 0));
 				await page.evaluate(() => document.fonts.ready);
+				// A mask hides the sidebar list's pixels but not its height, which follows the upstream page
+				// count. Pin the height (and drop Starlight's min-height: max-content, which would win) so an upstream
+				// page added or removed cannot move anything below it.
+				await page.addStyleTag({ content: '.sidebar-content { height: 20rem; min-height: 0; overflow: hidden; }' });
 				await expect(page).toHaveScreenshot(`${name}.png`, {
 					fullPage: true,
 					mask: [page.locator('img'), page.locator('.sidebar-content'), page.locator('.pagination-links')],
