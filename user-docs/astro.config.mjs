@@ -1,4 +1,5 @@
 // @ts-check
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import { unified } from '@astrojs/markdown-remark';
@@ -13,12 +14,28 @@ import { DOCS_SITES, remarkUpstreamLinks } from '../shared/remark-upstream-links
 await fetchSharedUi();
 await fetchDocs('user');
 
+// Pages that moved within jellyrock/jellyrock's docs/user/: old path to new path. Each old URL
+// redirects only once the fetched content has no page there, so a redirect never shadows a
+// page, and this list can land before or after the move upstream.
+const MOVED_PAGES = {
+	'deep-linking': 'features/deep-linking',
+	'manage-subtitles': 'features/manage-subtitles',
+	'media-segments': 'features/media-segments',
+};
+const contentDir = new URL('./src/content/docs/', import.meta.url);
+const redirects = Object.fromEntries(
+	Object.entries(MOVED_PAGES)
+		.filter(([from]) => !fs.existsSync(new URL(`${from}.md`, contentDir)))
+		.map(([from, to]) => [`/${from}`, `/${to}/`])
+);
+
 // https://astro.build/config
 export default defineConfig({
 	// Astro 7 defaults to 'jsx', which drops the whitespace between elements on separate lines.
 	// true is the lossless compression Astro 6 used (and .prettierrc.mjs formats for).
 	compressHTML: true,
 	site: DOCS_SITES.user,
+	redirects,
 	integrations: [
 		starlight({
 			// Fails the build on a link to a page or #anchor that doesn't exist. `#top` needs no

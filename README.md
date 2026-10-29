@@ -119,6 +119,19 @@ On the first build:
 
 This is the same path CI uses — no setup required.
 
+### Previewing an unmerged jellyrock branch (opt-in)
+
+To see a docs change before it merges, point the build at a local checkout of
+`jellyrock/jellyrock` (a worktree or a PR branch) instead of the clone:
+
+```bash
+JELLYROCK_SOURCE=/path/to/jellyrock npm run dev:user
+```
+
+The build reads that checkout as it is, uncommitted edits included, and logs
+its path after the commit. The **Edit page** links still point at `main`. CI
+never sets it.
+
 ### Iterating on shared-ui locally (opt-in)
 
 If you're actively editing `shared-ui` and want edits to hot-reload in the docs
@@ -186,6 +199,11 @@ Push to `main` and the docs sites redeploy within minutes: `jellyrock/jellyrock`
 (the paths `ensureClone()` in [`fetch-docs.mjs`](shared/fetch-docs.mjs) checks out).
 Broken links and anchors in `docs/user` and `docs/dev` fail that repo's
 `docs-check` on the PR, before they reach this build.
+
+When a user page moves upstream, add its old and new paths to `MOVED_PAGES` in
+[`user-docs/astro.config.mjs`](user-docs/astro.config.mjs), so links to the old
+URL keep working. The old URL redirects only once no page is left there, so the
+entry can land before or after the move.
 
 ### Changing the home page splash
 
