@@ -7,6 +7,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const REPO_URL = 'https://github.com/jellyrock/jellyrock.git';
 const CLONE_DIR = path.resolve(__dirname, '..', '.jellyrock-repo');
+// JELLYROCK_SOURCE names a local checkout of jellyrock/jellyrock to build from instead of the
+// clone, uncommitted edits included, so a branch can be previewed before it merges. CI leaves
+// it unset. The "Edit page" links still point at main, where the page will live.
+const LOCAL_SOURCE = process.env.JELLYROCK_SOURCE ? path.resolve(process.env.JELLYROCK_SOURCE) : null;
+const SOURCE_DIR = LOCAL_SOURCE ?? CLONE_DIR;
 // Each page's "Edit page" link: this plus the file's path in jellyrock/jellyrock. The clone
 // tracks main (ensureClone), so main is the branch the page was built from.
 const EDIT_BASE_URL = 'https://github.com/jellyrock/jellyrock/edit/main/';
@@ -26,15 +31,23 @@ export async function fetchDocs(docType) {
 	// Every build updates the clone and re-copies everything from it, so a local
 	// build uses the same upstream content as CI's fresh clone.
 	console.log(`Fetching ${docType} assets from jellyrock repo...`);
-	ensureClone();
-	const upstream = execSync(`git -C ${CLONE_DIR} log -1 --format="%h %cs"`, { encoding: 'utf8' }).trim();
-	console.log(`Using jellyrock/jellyrock ${upstream}`);
+	if (LOCAL_SOURCE) {
+		if (!fs.existsSync(path.join(LOCAL_SOURCE, 'docs', docType))) {
+			throw new Error(`JELLYROCK_SOURCE has no docs/${docType}: ${LOCAL_SOURCE}`);
+		}
+	} else {
+		ensureClone();
+	}
+	const upstream = execSync(`git -C ${SOURCE_DIR} log -1 --format="%h %cs"`, { encoding: 'utf8' }).trim();
+	console.log(
+		`Using jellyrock/jellyrock ${upstream}${LOCAL_SOURCE ? ` from ${LOCAL_SOURCE}, with any uncommitted edits` : ''}`
+	);
 
 	// Start from an empty content dir so pages removed or renamed upstream don't linger.
 	fs.rmSync(contentDir, { recursive: true, force: true });
 
 	// Copy docs markdown, adding Starlight frontmatter from first H1 heading
-	const srcDocs = path.join(CLONE_DIR, 'docs', docType);
+	const srcDocs = path.join(SOURCE_DIR, 'docs', docType);
 	fs.mkdirSync(contentDir, { recursive: true });
 	copyMarkdownWithFrontmatter(srcDocs, contentDir);
 	console.log(`Copied ${docType} docs → src/content/docs`);
@@ -42,7 +55,7 @@ export async function fetchDocs(docType) {
 	// Copy docs screenshots referenced by markdown. Skip markdown files: anything .md
 	// under src/content/docs becomes a Starlight page, and upstream's
 	// docs/screenshots/README.md (no title frontmatter) fails the collection schema.
-	const srcScreenshots = path.join(CLONE_DIR, 'docs', 'screenshots');
+	const srcScreenshots = path.join(SOURCE_DIR, 'docs', 'screenshots');
 	if (fs.existsSync(srcScreenshots)) {
 		const destScreenshots = path.join(contentDir, 'screenshots');
 		fs.cpSync(srcScreenshots, destScreenshots, {
@@ -64,14 +77,14 @@ export async function fetchDocs(docType) {
 	}
 
 	// Copy square JR logo as favicon
-	const squareLogoSrc = path.join(CLONE_DIR, 'resources', 'branding', 'logo-jr.png');
+	const squareLogoSrc = path.join(SOURCE_DIR, 'resources', 'branding', 'logo-jr.png');
 	if (fs.existsSync(squareLogoSrc)) {
 		fs.mkdirSync(publicDir, { recursive: true });
 		fs.copyFileSync(squareLogoSrc, path.join(publicDir, 'favicon.png'));
 	}
 
 	// ALWAYS regenerate theme.css from settings.json. Cheap, avoids stale state.
-	const settingsPath = path.join(CLONE_DIR, 'settings', 'settings.json');
+	const settingsPath = path.join(SOURCE_DIR, 'settings', 'settings.json');
 	if (fs.existsSync(settingsPath)) {
 		const theme = extractDefaultTheme(JSON.parse(fs.readFileSync(settingsPath, 'utf8')));
 		if (theme) {
@@ -246,7 +259,7 @@ function copyMarkdownWithFrontmatter(srcDir, destDir) {
 		}
 
 		let content = fs.readFileSync(srcPath, 'utf8');
-		const upstreamPath = path.relative(CLONE_DIR, srcPath).split(path.sep).join('/');
+		const upstreamPath = path.relative(SOURCE_DIR, srcPath).split(path.sep).join('/');
 		const editUrlLine = `editUrl: ${JSON.stringify(new URL(upstreamPath, EDIT_BASE_URL).href)}`;
 
 		// Case 1+2 share title-extraction logic; just differ in what we
