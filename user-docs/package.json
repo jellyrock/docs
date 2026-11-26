@@ -16,7 +16,7 @@
 		"github-slugger": "2.0.0",
 		"remark-github-alerts": "0.1.1",
 		"sharp": "0.35.5",
-		"starlight-links-validator": "0.27.0",
+		"starlight-links-validator": "0.27.1",
 		"unist-util-visit": "5.2.0"
 	}
 }
